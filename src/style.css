@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Diga ao Tailwind v4 para escutar todos os arquivos Vue e HTML */
+@source "./**/*.vue";
+@source "./index.html";
