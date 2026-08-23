@@ -3,7 +3,7 @@
     <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
       Faturamento por Segmento
     </h3>
-    <Bar :data="chartData" :options="chartOptions" :key="themeKey" />
+    <Bar :data="chartData" :options="chartOptions" />
   </div>
 </template>
 
@@ -25,9 +25,6 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const { isDark } = useTheme()
 
-// Força re-render quando o tema muda
-const themeKey = computed(() => (isDark.value ? 'dark' : 'light'))
-
 // Cores que mudam conforme o tema
 const chartData = computed(() => ({
   labels: ['Varejo', 'Indústria', 'Serviços', 'Saúde', 'Educação'],
@@ -37,11 +34,11 @@ const chartData = computed(() => ({
       data: [120, 250, 180, 90, 60],
       backgroundColor: isDark.value
         ? [
-            'rgba(139, 92, 246, 0.9)',   // violet-500
-            'rgba(129, 140, 248, 0.9)',  // indigo-400
+            'rgba(139, 92, 246, 0.9)',   // brand
+            'rgba(129, 140, 248, 0.9)',  // brand-accent-light
             'rgba(99, 102, 241, 0.9)',   // indigo-500
             'rgba(34, 211, 238, 0.9)',   // cyan-400
-            'rgba(167, 139, 250, 0.9)'   // violet-400
+            'rgba(167, 139, 250, 0.9)'   // brand-light
           ]
         : [
             'rgba(124, 58, 237, 0.85)',
