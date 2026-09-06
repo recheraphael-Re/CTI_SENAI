@@ -16,7 +16,11 @@
     </p>
     <p v-else class="mb-6 text-sm text-slate-500 dark:text-slate-400">
       Fonte: <strong class="font-semibold">{{ nomeArquivo }}</strong> —
-      faturamento total de {{ formatarMoeda(faturamentoTotal) }}.
+      {{ resumo.validas }} linhas válidas somam
+      {{ formatarMoeda(faturamentoTotal) }} por mês.
+      <template v-if="resumo.comErro">
+        {{ resumo.comErro }} linhas ficaram de fora por erro de validação.
+      </template>
     </p>
 
     <!-- Cards de indicadores -->
@@ -38,6 +42,7 @@
     <!-- Gráfico de faturamento, somado por segmento -->
     <div class="mt-8">
       <RevenueChart
+        titulo="Faturamento mensal por segmento"
         :rotulos="faturamentoPorSegmento.rotulos"
         :valores="faturamentoPorSegmento.valores"
       />
@@ -52,6 +57,6 @@ import { useClientes } from '../composables/useClientes.js'
 import { formatarMoeda } from '../utils/formato.js'
 
 // Os indicadores saem da planilha enviada no Upload; sem planilha, da amostra
-const { indicadores, faturamentoPorSegmento, faturamentoTotal, usandoExemplo, nomeArquivo } =
+const { indicadores, faturamentoPorSegmento, faturamentoTotal, usandoExemplo, nomeArquivo, resumo } =
   useClientes()
 </script>

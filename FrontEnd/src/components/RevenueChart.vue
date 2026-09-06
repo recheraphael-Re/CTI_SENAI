@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm transition-colors duration-300">
     <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-      Faturamento por Segmento
+      {{ titulo }}
     </h3>
     <Bar :data="chartData" :options="chartOptions" />
   </div>
@@ -27,6 +27,10 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 // Sem propriedades, o gráfico mostra a amostra (é assim que a Home o usa).
 // A tela de Gráficos passa os totais da planilha enviada.
 const props = defineProps({
+  titulo: {
+    type: String,
+    default: 'Faturamento por Segmento'
+  },
   rotulos: {
     type: Array,
     default: () => ['Varejo', 'Indústria', 'Serviços', 'Saúde', 'Educação']
@@ -62,7 +66,7 @@ const chartData = computed(() => ({
   labels: props.rotulos,
   datasets: [
     {
-      label: 'Faturamento anual',
+      label: 'Faturamento',
       data: props.valores,
       // O resto da divisão repete as cores quando há mais segmentos que cores
       backgroundColor: props.valores.map((_, i) => paleta.value[i % paleta.value.length]),

@@ -33,13 +33,17 @@ function numeroSimples(texto) {
   const valor = parseFloat(numero)
   if (!Number.isFinite(valor)) return null
 
+  // Um "-" colado antes do número indica valor negativo, que precisa
+  // chegar negativo até a validação (a base de teste tem valores assim).
+  const sinal = limpo.slice(0, encontrado.index).endsWith('-') ? -1 : 1
+
   // O que vem depois do número indica a escala: 1,2M / 850 mil / 2 milhões
   const sufixo = limpo.slice(encontrado.index + encontrado[0].length)
-  if (/^milh/.test(sufixo)) return valor * 1e6
-  if (/^mil/.test(sufixo)) return valor * 1e3
-  if (/^k/.test(sufixo)) return valor * 1e3
-  if (/^m/.test(sufixo)) return valor * 1e6
-  return valor
+  if (/^milh/.test(sufixo)) return sinal * valor * 1e6
+  if (/^mil/.test(sufixo)) return sinal * valor * 1e3
+  if (/^k/.test(sufixo)) return sinal * valor * 1e3
+  if (/^m/.test(sufixo)) return sinal * valor * 1e6
+  return sinal * valor
 }
 
 // Interpreta o faturamento anual. Quando a célula traz uma FAIXA
@@ -50,8 +54,12 @@ export function interpretarNumero(valor) {
   const texto = String(valor ?? '').trim()
   if (!texto) return 0
 
-  const partes = texto
-    .split(/\s+(?:a|ate|até)\s+|\s*[-–—]\s*/i)
+  // Marca o hífen como separador só quando há número dos dois lados,
+  // para não confundir com o sinal de um valor negativo.
+  const marcado = texto.replace(/(\d\s*[kKmM]?)\s*[-–—]\s*(?=[R$\s]*\d)/g, '$1 a ')
+
+  const partes = marcado
+    .split(/\s+(?:a|ate|até)\s+/i)
     .map(numeroSimples)
     .filter((n) => n !== null)
 
@@ -62,6 +70,7 @@ export function interpretarNumero(valor) {
 // Formata para exibição, na escala que o valor pedir.
 export function formatarMoeda(valor) {
   const numero = Number(valor) || 0
+  if (numero < 0) return `-${formatarMoeda(-numero)}`
   if (numero >= 1e6) {
     return `R$ ${(numero / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi`
   }
@@ -69,11 +78,4 @@ export function formatarMoeda(valor) {
     return `R$ ${Math.round(numero / 1e3).toLocaleString('pt-BR')} mil`
   }
   return `R$ ${numero.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
-}
-
-// "Ativo", "Sim", "Cancelado"... vira booleano. Sem a coluna, considera ativo.
-export function interpretarStatus(valor) {
-  const texto = normalizar(valor)
-  if (!texto) return true
-  return !['inativo', 'nao', 'n', 'cancelado', 'encerrado', 'false', '0'].includes(texto)
 }
