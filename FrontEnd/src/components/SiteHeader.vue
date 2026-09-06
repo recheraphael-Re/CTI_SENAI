@@ -8,9 +8,9 @@
 
       <div class="flex items-center gap-3 md:gap-6">
         <!-- hidden md:flex: o menu em linha só aparece do tablet para cima -->
-        <MenuPrincipal class="hidden md:flex" />
+        <NavMenu class="hidden md:flex" />
 
-        <AlternadorTema />
+        <ThemeToggle />
 
         <!-- md:hidden: o botão hambúrguer só existe no celular -->
         <button
@@ -47,15 +47,15 @@
       class="md:hidden border-t border-slate-200 dark:border-slate-800 px-4 py-3"
     >
       <!-- vertical: empilha os links | @navegar: fecha ao escolher uma tela -->
-      <MenuPrincipal vertical @navegar="aberto = false" />
+      <NavMenu vertical @navegar="aberto = false" />
     </div>
   </header>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import MenuPrincipal from './MenuPrincipal.vue'
-import AlternadorTema from '../AlternadorTema.vue'
+import NavMenu from './NavMenu.vue'
+import ThemeToggle from './ThemeToggle.vue'
 
 // ESTADO: o menu do celular está aberto?
 const aberto = ref(false)

@@ -36,7 +36,7 @@
 
   <!-- Grid de serviços -->
   <section id="servicos" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-    <CartaoServico
+    <ServiceCard
       v-for="servico in servicos"
       :key="servico.titulo"
       :titulo="servico.titulo"
@@ -73,7 +73,7 @@
 
   <!-- Gráfico -->
   <section class="mt-16">
-    <GraficoFaturamento />
+    <RevenueChart />
   </section>
 
   <!-- Banner com foto de fundo — passo 07 da aula -->
@@ -95,7 +95,7 @@
         Hoje essa resposta leva horas de planilha. Com o CTI Insights, leva um upload.
       </p>
       <RouterLink
-        to="/upload"
+        to="/app/upload"
         class="mt-6 inline-block bg-brand px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition"
       >
         Enviar minha planilha
@@ -153,8 +153,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { RouterLink } from 'vue-router'
-import CartaoServico from '../components/CartaoServico.vue'
-import GraficoFaturamento from '../components/GraficoFaturamento.vue'
+import ServiceCard from '../components/ServiceCard.vue'
+import RevenueChart from '../components/RevenueChart.vue'
 import imagemPainel from '../assets/hero.png'
 
 const servicos = ref([

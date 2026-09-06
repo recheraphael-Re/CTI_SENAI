@@ -10,7 +10,7 @@
       <div class="flex gap-6 text-sm font-semibold">
         <RouterLink to="/" class="hover:text-brand-light transition">Início</RouterLink>
         <RouterLink to="/login" class="hover:text-brand-light transition">Login</RouterLink>
-        <RouterLink to="/dashboard" class="text-brand-light hover:text-brand-light transition">Dashboard</RouterLink>
+        <RouterLink to="/app" class="text-brand-light hover:text-brand-light transition">Painel</RouterLink>
       </div>
     </div>
   </footer>

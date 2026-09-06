@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
@@ -8,4 +9,10 @@ export default defineConfig({
     vue(),
     tailwindcss(),
   ],
+  resolve: {
+    // Atalho @ para a pasta src, usado nos imports do roteador
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  }
 })

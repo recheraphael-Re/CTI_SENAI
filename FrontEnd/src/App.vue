@@ -1,11 +1,8 @@
 <template>
-  <!-- O layout é fixo; o router-view troca só o conteúdo da página -->
-  <LayoutPrincipal>
-    <RouterView />
-  </LayoutPrincipal>
+  <!-- O router-view renderiza o PublicLayout ou o AppLayout conforme a URL -->
+  <RouterView />
 </template>
 
 <script setup>
 import { RouterView } from 'vue-router'
-import LayoutPrincipal from './components/layout/LayoutPrincipal.vue'
 </script>

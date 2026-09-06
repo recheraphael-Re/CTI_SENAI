@@ -1,5 +1,5 @@
 <template>
-  <!-- MENU — os mesmos links servem ao topo (linha) e ao celular (coluna).
+  <!-- NAVMENU — navegação do site público.
        A direção vem por PROPRIEDADE, então não há código duplicado. -->
   <nav
     class="font-medium text-slate-700 dark:text-slate-300"
@@ -31,11 +31,11 @@ defineProps({
 // Evento avisando o cabeçalho de que um link foi clicado (para fechar o menu)
 defineEmits(['navegar'])
 
-// Links do menu — centralizados aqui para facilitar a manutenção
+// Links do site público — o painel interno tem a própria Sidebar
 const itens = ref([
   { rotulo: 'Início', to: '/' },
-  { rotulo: 'Login', to: '/login' },
-  { rotulo: 'Upload', to: '/upload' },
-  { rotulo: 'Dashboard', to: '/dashboard' }
+  { rotulo: 'Sobre', to: '/#sobre' },
+  { rotulo: 'Contato', to: '/#contato' },
+  { rotulo: 'Acessar sistema', to: '/login' }
 ])
 </script>

@@ -1,10 +1,7 @@
 <template>
-  <!-- DASHBOARD — KPIs, gráficos e visão geral da carteira -->
-  <section class="py-10">
-    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
-      Dashboard
-    </h2>
-    <p class="text-slate-600 dark:text-slate-400 mt-1 mb-6">
+  <!-- GRÁFICOS — KPIs e indicadores da carteira -->
+  <section>
+    <p class="text-slate-600 dark:text-slate-400 mb-6">
       Visão geral dos principais indicadores e insights.
     </p>
 
@@ -26,14 +23,14 @@
 
     <!-- Gráfico de faturamento -->
     <div class="mt-8">
-      <GraficoFaturamento />
+      <RevenueChart />
     </div>
   </section>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import GraficoFaturamento from '../components/GraficoFaturamento.vue'
+import RevenueChart from '../components/RevenueChart.vue'
 
 // Dados de exemplo — serão substituídos pelos dados da planilha tratada
 const indicadores = ref([

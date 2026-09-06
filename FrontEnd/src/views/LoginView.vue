@@ -57,6 +57,6 @@ const senha = ref('')
 
 // Sem back-end ainda: apenas leva o usuário para a tela de upload
 function entrar() {
-  router.push('/upload')
+  router.push('/app/upload')
 }
 </script>

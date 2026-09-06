@@ -1,17 +1,50 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
-// Rotas das 4 telas do sistema CTI Insights
+// Layouts
+import PublicLayout from '@/layouts/PublicLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
+
+// View pública inicial (carregada junto, por ser a porta de entrada)
+import HomeView from '@/views/HomeView.vue'
+
+// Demais views carregadas sob demanda (lazy loading)
+const LoginView = () => import('@/views/LoginView.vue')
+const UploadView = () => import('@/views/UploadView.vue')
+const RelatoriosView = () => import('@/views/RelatoriosView.vue')
+const GraficosView = () => import('@/views/GraficosView.vue')
+
 const routes = [
-  { path: '/', name: 'home', component: HomeView },
-  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
-  { path: '/upload', name: 'upload', component: () => import('../views/UploadView.vue') },
-  { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue') }
+  // --- Rotas públicas (site institucional) ---
+  {
+    path: '/',
+    component: PublicLayout,
+    children: [
+      { path: '', name: 'home', component: HomeView },
+      { path: 'login', name: 'login', component: LoginView }
+    ]
+  },
+
+  // --- Rotas internas (painel, com Sidebar e Header) ---
+  {
+    path: '/app',
+    component: AppLayout,
+    redirect: '/app/upload', // Ao acessar /app, cai na tela principal interna
+    children: [
+      { path: 'upload', name: 'upload', component: UploadView },
+      { path: 'relatorios', name: 'relatorios', component: RelatoriosView },
+      { path: 'graficos', name: 'graficos', component: GraficosView }
+    ]
+  },
+
+  // Redireciona qualquer rota inexistente para a home
+  { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
-export default createRouter({
-  history: createWebHistory(),
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  // Sempre abre a página no topo ao trocar de rota
-  scrollBehavior: () => ({ top: 0 })
+  // Rola até a âncora quando houver (#sobre, #contato); senão, volta ao topo
+  scrollBehavior: (to) => (to.hash ? { el: to.hash, behavior: 'smooth' } : { top: 0 })
 })
+
+export default router

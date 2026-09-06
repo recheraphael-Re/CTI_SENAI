@@ -1,10 +1,7 @@
 <template>
   <!-- UPLOAD — envio da planilha Excel para tratamento -->
-  <section class="py-10">
-    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
-      Upload de Planilha
-    </h2>
-    <p class="text-slate-600 dark:text-slate-400 mt-1 mb-6">
+  <section>
+    <p class="text-slate-600 dark:text-slate-400 mb-6">
       Envie a planilha de clientes para tratamento e análise.
     </p>
 
@@ -65,6 +62,6 @@ function soltar(evento) {
 
 // Sem back-end ainda: segue direto para o dashboard
 function processar() {
-  router.push('/dashboard')
+  router.push('/app/graficos')
 }
 </script>
