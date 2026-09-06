@@ -73,12 +73,15 @@
       </p>
 
       <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div v-for="cartao in cartoes" :key="cartao.rotulo">
-          <p class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
-            {{ cartao.rotulo }}
-          </p>
-          <p class="mt-1 text-2xl font-bold" :class="cartao.cor">{{ cartao.valor }}</p>
-        </div>
+        <CartaoIndicador
+          v-for="cartao in cartoes"
+          :key="cartao.rotulo"
+          :rotulo="cartao.rotulo"
+          :valor="cartao.valor"
+          :tom="cartao.tom"
+          tamanho="medio"
+          :caixa="false"
+        />
       </div>
 
       <!-- Ocorrências agrupadas por tipo, como o gabarito da planilha de teste -->
@@ -123,6 +126,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useClientes } from '../composables/useClientes.js'
+import CartaoIndicador from '../components/CartaoIndicador.vue'
 
 const { nomeArquivo, carregando, erro, temDados, resumo, errosPorTipo, importarPlanilha, limpar } =
   useClientes()
@@ -131,10 +135,10 @@ const arquivo = ref(null)
 const arrastando = ref(false)
 
 const cartoes = computed(() => [
-  { rotulo: 'Linhas lidas', valor: resumo.value.linhas, cor: 'text-slate-900 dark:text-slate-100' },
-  { rotulo: 'Válidas', valor: resumo.value.validas, cor: 'text-emerald-600 dark:text-emerald-400' },
-  { rotulo: 'Com erro', valor: resumo.value.comErro, cor: 'text-rose-600 dark:text-rose-400' },
-  { rotulo: 'Ocorrências', valor: resumo.value.ocorrencias, cor: 'text-amber-600 dark:text-amber-400' }
+  { rotulo: 'Linhas lidas', valor: resumo.value.linhas, tom: 'neutro' },
+  { rotulo: 'Válidas', valor: resumo.value.validas, tom: 'ok' },
+  { rotulo: 'Com erro', valor: resumo.value.comErro, tom: 'erro' },
+  { rotulo: 'Ocorrências', valor: resumo.value.ocorrencias, tom: 'aviso' }
 ])
 
 function selecionar(evento) {
