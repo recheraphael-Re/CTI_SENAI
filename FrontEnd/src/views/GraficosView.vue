@@ -5,6 +5,20 @@
       Visão geral dos principais indicadores e insights.
     </p>
 
+    <!-- Deixa claro quando a tela ainda não tem planilha de verdade -->
+    <p
+      v-if="usandoExemplo"
+      class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400"
+    >
+      Estes são dados de exemplo.
+      <RouterLink to="/app/upload" class="font-semibold underline">Envie uma planilha</RouterLink>
+      para ver a sua carteira.
+    </p>
+    <p v-else class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+      Fonte: <strong class="font-semibold">{{ nomeArquivo }}</strong> —
+      faturamento total de {{ formatarMoeda(faturamentoTotal) }}.
+    </p>
+
     <!-- Cards de indicadores -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       <div
@@ -21,21 +35,23 @@
       </div>
     </div>
 
-    <!-- Gráfico de faturamento -->
+    <!-- Gráfico de faturamento, somado por segmento -->
     <div class="mt-8">
-      <RevenueChart />
+      <RevenueChart
+        :rotulos="faturamentoPorSegmento.rotulos"
+        :valores="faturamentoPorSegmento.valores"
+      />
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import RevenueChart from '../components/RevenueChart.vue'
+import { useClientes } from '../composables/useClientes.js'
+import { formatarMoeda } from '../utils/formato.js'
 
-// Dados de exemplo — serão substituídos pelos dados da planilha tratada
-const indicadores = ref([
-  { rotulo: 'Total de clientes', valor: '1.250' },
-  { rotulo: 'Faturamento médio', valor: 'R$ 450k' },
-  { rotulo: 'Serviços ativos', valor: '3.420' }
-])
+// Os indicadores saem da planilha enviada no Upload; sem planilha, da amostra
+const { indicadores, faturamentoPorSegmento, faturamentoTotal, usandoExemplo, nomeArquivo } =
+  useClientes()
 </script>

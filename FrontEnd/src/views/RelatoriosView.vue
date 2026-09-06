@@ -14,6 +14,16 @@
       />
     </div>
 
+    <!-- Deixa claro quando a tela ainda não tem planilha de verdade -->
+    <p
+      v-if="usandoExemplo"
+      class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400"
+    >
+      Estes são dados de exemplo.
+      <RouterLink to="/app/upload" class="font-semibold underline">Envie uma planilha</RouterLink>
+      para ver a sua carteira.
+    </p>
+
     <!-- overflow-x-auto: a tabela rola sozinha em telas estreitas -->
     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
       <table class="w-full text-left text-sm">
@@ -29,14 +39,17 @@
         </thead>
         <tbody>
           <tr
-            v-for="cliente in clientesFiltrados"
-            :key="cliente.id"
+            v-for="(cliente, indice) in clientesFiltrados"
+            :key="`${cliente.id}-${indice}`"
             class="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
           >
             <td class="px-4 py-3 text-slate-500">{{ cliente.id }}</td>
             <td class="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{{ cliente.empresa }}</td>
             <td class="px-4 py-3">{{ cliente.segmento }}</td>
-            <td class="px-4 py-3">{{ cliente.faturamento }}</td>
+            <!-- title mostra como o valor estava escrito na planilha original -->
+            <td class="px-4 py-3" :title="cliente.faturamentoOriginal">
+              {{ formatarMoeda(cliente.faturamento) }}
+            </td>
             <td class="px-4 py-3 font-bold">{{ cliente.nivel }}</td>
             <td class="px-4 py-3">
               <span
@@ -63,24 +76,24 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useClientes } from '../composables/useClientes.js'
+import { formatarMoeda } from '../utils/formato.js'
 
 const busca = ref('')
 
-// Dados de exemplo — serão substituídos pelos dados da planilha tratada
-const clientes = ref([
-  { id: 1001, empresa: 'TechCorp S.A.', segmento: 'Tecnologia', faturamento: 'R$ 1,2M', nivel: 'A', ativo: true },
-  { id: 1002, empresa: 'Indústrias ABC', segmento: 'Manufatura', faturamento: 'R$ 850k', nivel: 'B', ativo: true },
-  { id: 1003, empresa: 'Comercial Silva', segmento: 'Varejo', faturamento: 'R$ 200k', nivel: 'C', ativo: false },
-  { id: 1004, empresa: 'Logística Express', segmento: 'Transporte', faturamento: 'R$ 3,5M', nivel: 'A', ativo: true },
-  { id: 1005, empresa: 'Serviços Gerais Ltda', segmento: 'Serviços', faturamento: 'R$ 420k', nivel: 'B', ativo: true }
-])
+// Vem da planilha enviada no Upload; sem planilha, cai nos dados de exemplo
+const { clientesExibidos, usandoExemplo } = useClientes()
 
 // Filtra pela busca digitada, ignorando maiúsculas e minúsculas
 const clientesFiltrados = computed(() => {
   const termo = busca.value.trim().toLowerCase()
-  if (!termo) return clientes.value
-  return clientes.value.filter((c) =>
-    c.empresa.toLowerCase().includes(termo) || c.segmento.toLowerCase().includes(termo)
+  if (!termo) return clientesExibidos.value
+
+  return clientesExibidos.value.filter((c) =>
+    c.empresa.toLowerCase().includes(termo) ||
+    c.segmento.toLowerCase().includes(termo) ||
+    c.consultor.toLowerCase().includes(termo)
   )
 })
 </script>
