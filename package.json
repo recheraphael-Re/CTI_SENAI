@@ -8,5 +8,8 @@
     "build": "npm --prefix FrontEnd run build",
     "preview": "npm --prefix FrontEnd run preview",
     "setup": "npm --prefix FrontEnd install"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

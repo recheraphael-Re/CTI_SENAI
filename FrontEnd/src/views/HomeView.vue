@@ -1,4 +1,4 @@
-<template>
+ <template>
   <!-- HOME — tela de apresentação (landing page) -->
 
   <!-- Hero -->
@@ -73,6 +73,7 @@
 
   <!-- Gráfico -->
   <section class="mt-16">
+    <p class="mb-3 text-sm text-slate-500">Demonstração com dados fictícios.</p>
     <RevenueChart />
   </section>
 
@@ -112,7 +113,7 @@
           Fale com a equipe do projeto.
         </h3>
         <p class="mt-3 text-slate-600 dark:text-slate-400">
-          Projeto Integrador 2026/01 — Escola SENAI de Informática, em parceria com a
+          Projeto Integrador II 2026/02 — SENAI Roberto Mange, em parceria com a
           CTI Comunicação de Dados e Tecnologia.
         </p>
       </div>
@@ -143,7 +144,7 @@
           Enviar mensagem
         </button>
         <p v-if="enviado" class="text-sm font-semibold text-brand dark:text-brand-light">
-          Mensagem registrada! Em breve entraremos em contato.
+          Formulário demonstrativo: nenhuma mensagem foi enviada.
         </p>
       </form>
     </div>

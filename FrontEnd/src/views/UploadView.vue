@@ -22,7 +22,7 @@
 
       <label class="mt-4 inline-block cursor-pointer bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold">
         Selecionar arquivo
-        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="selecionar" />
+        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" :disabled="carregando" @change="selecionar" />
       </label>
 
       <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
@@ -104,6 +104,43 @@
         </p>
       </div>
 
+      <div class="mt-6">
+        <h3 class="font-bold text-slate-900 dark:text-slate-100">Prévia dos clientes tratados</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          {{ totalClientes }} clientes válidos · {{ clientesNivelA }} clientes válidos de nível A.
+          Primeiras {{ previa.length }} de {{ resumo.linhas }} linhas importadas.
+        </p>
+        <div class="mt-3 overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+            <caption class="sr-only">Prévia da planilha após padronização; linhas com erro estão identificadas.</caption>
+            <thead class="bg-slate-100 dark:bg-slate-800">
+              <tr>
+                <th scope="col" class="p-3">Linha</th>
+                <th scope="col" class="p-3">Código</th>
+                <th scope="col" class="p-3">Cliente</th>
+                <th scope="col" class="p-3">Consultor</th>
+                <th scope="col" class="p-3">Segmento</th>
+                <th scope="col" class="p-3">Nível</th>
+                <th scope="col" class="p-3">Validação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="cliente in previa" :key="cliente.linha" class="border-b border-slate-200 dark:border-slate-800">
+                <td class="p-3">{{ cliente.linha }}</td>
+                <td class="p-3">{{ cliente.id || '—' }}</td>
+                <td class="p-3">{{ cliente.empresa || '—' }}</td>
+                <td class="p-3">{{ cliente.consultor || '—' }}</td>
+                <td class="p-3">{{ cliente.segmento }}</td>
+                <td class="p-3">{{ cliente.nivel }}</td>
+                <td class="p-3" :class="cliente.valida ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'">
+                  {{ cliente.valida ? 'Válido' : cliente.erros.map(e => e.descricao).join('; ') }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="mt-6 flex flex-wrap gap-3">
         <RouterLink
           to="/app/graficos"
@@ -125,13 +162,18 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useClientes } from '../composables/useClientes.js'
+import { storeToRefs } from 'pinia'
+import { useUploadStore } from '../stores/uploadStore.js'
 import CartaoIndicador from '../components/CartaoIndicador.vue'
 
-const { nomeArquivo, carregando, erro, temDados, resumo, errosPorTipo, importarPlanilha, limpar } =
-  useClientes()
+const store = useUploadStore()
+const { arquivo, nomeArquivo, carregando, erro, temDados, resumo, errosPorTipo, dadosTratados, totalClientes, clientesNivelA } = storeToRefs(store)
+const previa = computed(() => dadosTratados.value.slice(0, 10))
 
-const arquivo = ref(null)
+function limpar() {
+  store.limpar()
+}
+
 const arrastando = ref(false)
 
 const cartoes = computed(() => [
@@ -142,19 +184,22 @@ const cartoes = computed(() => [
 ])
 
 function selecionar(evento) {
-  arquivo.value = evento.target.files[0] ?? null
-  erro.value = ''
+  receberArquivo(evento.target.files[0])
+  evento.target.value = ''
 }
 
 function soltar(evento) {
   arrastando.value = false
-  arquivo.value = evento.dataTransfer.files[0] ?? null
-  erro.value = ''
+  receberArquivo(evento.dataTransfer.files[0])
+}
+
+function receberArquivo(novo) {
+  store.selecionarArquivo(novo)
 }
 
 // Lê a planilha e mostra o resumo aqui mesmo, em vez de pular direto para
 // os gráficos: o que o tratamento encontrou é parte do resultado.
 async function processar() {
-  await importarPlanilha(arquivo.value)
+  await store.processarPlanilha()
 }
 </script>

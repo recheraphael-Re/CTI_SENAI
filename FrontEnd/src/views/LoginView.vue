@@ -6,7 +6,7 @@
         Bem-vindo de volta!
       </h2>
       <p class="text-center text-slate-600 dark:text-slate-400 mt-1 mb-6">
-        Faça login para acessar sua conta
+        Acesso demonstrativo — autenticação ainda não implementada. Não informe sua senha real.
       </p>
 
       <form class="flex flex-col gap-4" @submit.prevent="entrar">
@@ -16,7 +16,7 @@
           </label>
           <input
             id="email"
-            v-model="email"
+            v-model="email" disabled
             type="email"
             placeholder="usuario@cti.com.br"
             class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-slate-900 dark:text-slate-100 outline-none focus:border-brand"
@@ -29,7 +29,7 @@
           </label>
           <input
             id="senha"
-            v-model="senha"
+            v-model="senha" disabled
             type="password"
             placeholder="••••••••"
             class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-slate-900 dark:text-slate-100 outline-none focus:border-brand"
@@ -40,7 +40,7 @@
           type="submit"
           class="mt-2 bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold"
         >
-          Entrar
+          Acessar demonstração
         </button>
       </form>
     </div>

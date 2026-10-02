@@ -83,7 +83,7 @@ function lerListas(XLSX, pasta) {
 
   const linhas = XLSX.utils.sheet_to_json(pasta.Sheets[nome], {
     header: 1,
-    blankrows: false,
+    blankrows: true,
     defval: ''
   })
 
@@ -166,6 +166,14 @@ function validar(registro, bruto, listas, vistos) {
     acusar('DOMINIO_INVALIDO', 'status_contrato', `Status fora da lista: ${statusBruto}.`)
   }
 
+  for (const [campo, valor] of [['faturamento', registro.faturamento], ['valor_servico', registro.valorServico]]) {
+    const original = campo === 'faturamento' ? bruto.faturamento : bruto.valorServico
+    if (valor === null && String(original ?? '').trim()) acusar('NUMERO_INVALIDO', campo, 'Informe um número ou uma faixa numérica válida.')
+  }
+  for (const campo of ['segmento', 'nivel', 'faturamento']) {
+    if (!String(bruto[campo] ?? '').trim()) acusar('CAMPO_OBRIGATORIO', campo, `Campo ${campo} vazio.`)
+  }
+
   if (registro.faturamento < 0) {
     acusar('VALOR_NEGATIVO', 'faturamento_mensal', 'Faturamento mensal negativo.')
   }
@@ -202,7 +210,7 @@ export async function lerPlanilha(arquivo) {
   // header: 1 devolve linhas cruas (vetores), para localizar o cabeçalho na mão
   const linhas = XLSX.utils.sheet_to_json(pasta.Sheets[nomeAba], {
     header: 1,
-    blankrows: false,
+    blankrows: true,
     defval: ''
   })
 
@@ -218,11 +226,19 @@ export async function lerPlanilha(arquivo) {
   const mapa = {}
   linhas[indice].forEach((celula, coluna) => {
     const campo = campoDaColuna(celula)
-    if (campo && mapa[campo] === undefined) mapa[campo] = coluna
+    if (campo && mapa[campo] !== undefined) throw new Error(`Mais de uma coluna corresponde a ${campo}. Mantenha apenas uma para evitar ambiguidade.`)
+    if (campo) mapa[campo] = coluna
   })
+
+  const obrigatorias = { id: 'Código do cliente', empresa: 'Empresa', consultor: 'Consultor', segmento: 'Segmento', nivel: 'Nível', faturamento: 'Faturamento', servico: 'Serviço' }
+  const ausentes = Object.entries(obrigatorias).filter(([campo]) => mapa[campo] === undefined).map(([, nome]) => nome)
+  if (ausentes.length) throw new Error(`Colunas obrigatórias ausentes: ${ausentes.join(', ')}.`)
+  const cabecalhoFaturamento = normalizar(linhas[indice][mapa.faturamento])
+  const periodoFaturamento = cabecalhoFaturamento.includes('anual') ? 'anual' : cabecalhoFaturamento.includes('mensal') ? 'mensal' : 'não informado'
 
   const vistos = new Map()
   const clientes = []
+  const dadosOriginais = []
   const erros = []
 
   linhas.slice(indice + 1).forEach((linha, posicao) => {
@@ -244,6 +260,7 @@ export async function lerPlanilha(arquivo) {
     // Linha inteiramente vazia ou rodapé de total: não é registro
     const temConteudo = Object.values(bruto).some((v) => String(v).trim())
     if (!temConteudo || normalizar(bruto.empresa) === 'total') return
+    dadosOriginais.push({ ...bruto })
 
     const registro = {
       // Linha do Excel: o +2 cobre o cabeçalho e a contagem começando em 1,
@@ -277,6 +294,9 @@ export async function lerPlanilha(arquivo) {
   }
 
   return {
+    dadosOriginais,
+    periodoFaturamento,
+    totalColunas: linhas[indice].filter(c => String(c).trim()).length,
     clientes,
     erros,
     resumo: {

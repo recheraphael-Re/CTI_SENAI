@@ -20,10 +20,14 @@ function numeroSimples(texto) {
     .toLowerCase()
     .replace(/r\$|\s/g, '')
 
+  if (!/^[+-]?(?:\d+(?:[.,]\d+)*|[.,]\d+)(?:milhoes?|milhao|mil|k|m)?$/.test(limpo)) return null
   const encontrado = limpo.match(/[\d.,]+/)
   if (!encontrado) return null
 
   let numero = encontrado[0]
+  if ((numero.match(/,/g) ?? []).length > 1) return null
+  if (numero.includes(',') && !/^(?:\d+|\d{1,3}(?:\.\d{3})+),\d+$/.test(numero)) return null
+  if (!numero.includes(',') && (numero.match(/\./g) ?? []).length > 1 && !/^\d{1,3}(?:\.\d{3})+$/.test(numero)) return null
   if (numero.includes(',')) {
     numero = numero.replace(/\./g, '').replace(',', '.') // 1.200.000,50 -> 1200000.50
   } else if (/\.\d{3}(\.|$)/.test(numero)) {
@@ -49,21 +53,20 @@ function numeroSimples(texto) {
 // Interpreta o faturamento anual. Quando a célula traz uma FAIXA
 // ("de 500 mil a 1 milhão"), usa o ponto médio para poder somar e comparar.
 export function interpretarNumero(valor) {
-  if (typeof valor === 'number') return Number.isFinite(valor) ? valor : 0
+  if (typeof valor === 'number') return Number.isFinite(valor) ? valor : null
 
   const texto = String(valor ?? '').trim()
-  if (!texto) return 0
+  if (!texto) return null
 
   // Marca o hífen como separador só quando há número dos dois lados,
   // para não confundir com o sinal de um valor negativo.
-  const marcado = texto.replace(/(\d\s*[kKmM]?)\s*[-–—]\s*(?=[R$\s]*\d)/g, '$1 a ')
+  const marcado = texto.replace(/^de\s+/i, '').replace(/(\d\s*[kKmM]?)\s*[-–—]\s*(?=[R$\s]*\d)/g, '$1 a ')
 
   const partes = marcado
     .split(/\s+(?:a|ate|até)\s+/i)
     .map(numeroSimples)
-    .filter((n) => n !== null)
 
-  if (partes.length === 0) return 0
+  if (partes.length === 0 || partes.some(n => n === null)) return null
   return partes.reduce((soma, n) => soma + n, 0) / partes.length
 }
 
