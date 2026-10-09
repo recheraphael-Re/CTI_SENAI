@@ -34,6 +34,7 @@ const COLUNAS = {
   id: ['codigo', 'codigocliente', 'codigodocliente', 'codcliente', 'id', 'idcliente'],
   empresa: ['empresa', 'cliente', 'nome', 'nomeempresa', 'nomedocliente', 'razaosocial', 'nomefantasia'],
   consultor: ['consultor', 'vendedor', 'responsavel', 'executivo'],
+  email: ['email', 'emailcliente', 'correioeletronico'],
   segmento: ['segmento', 'setor', 'ramo', 'areadeatuacao', 'atividade'],
   nivel: ['nivel', 'classificacao', 'classe', 'categoria', 'porte'],
   faturamento: ['faturamento', 'faturamentomensal', 'faturamentoanual', 'faixadefaturamento', 'faixa', 'receita'],
@@ -74,6 +75,11 @@ function padronizar(valor, oficiais, apelidos = {}) {
   if (!chave) return ''
   if (apelidos[chave]) return apelidos[chave]
   return oficiais.find((oficial) => normalizar(oficial) === chave) ?? String(valor).trim()
+}
+
+// Remove espaços nas extremidades e espaços repetidos nos textos exibidos.
+function limparTexto(valor) {
+  return String(valor ?? '').trim().replace(/\s+/g, ' ')
 }
 
 // Lê os domínios da aba listas_referencia, caindo no padrão quando ela não existe
@@ -132,7 +138,7 @@ export function interpretarData(valor) {
 
 // As cinco regras do gabarito. `vistos` guarda os códigos já lidos, para que
 // a DUPLICIDADE caia na segunda ocorrência, e não na primeira.
-function validar(registro, bruto, listas, vistos) {
+function validar(registro, bruto, listas, vistos, temEmail) {
   const erros = []
   const acusar = (tipo, campo, descricao) => erros.push({ tipo, campo, descricao })
 
@@ -164,6 +170,14 @@ function validar(registro, bruto, listas, vistos) {
   const statusBruto = String(bruto.status ?? '').trim()
   if (statusBruto && !listas.status.includes(statusBruto)) {
     acusar('DOMINIO_INVALIDO', 'status_contrato', `Status fora da lista: ${statusBruto}.`)
+  }
+
+  // A base oficial não tem e-mail. Quando a coluna é fornecida, valide-a.
+  if (temEmail) {
+    if (!registro.email) acusar('CAMPO_OBRIGATORIO', 'email', 'E-mail vazio.')
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registro.email)) {
+      acusar('EMAIL_INVALIDO', 'email', `E-mail em formato inválido: ${registro.email}.`)
+    }
   }
 
   for (const [campo, valor] of [['faturamento', registro.faturamento], ['valor_servico', registro.valorServico]]) {
@@ -248,6 +262,7 @@ export async function lerPlanilha(arquivo) {
       id: pegar('id'),
       empresa: pegar('empresa'),
       consultor: pegar('consultor'),
+      email: pegar('email'),
       segmento: pegar('segmento'),
       nivel: pegar('nivel'),
       faturamento: pegar('faturamento'),
@@ -267,8 +282,9 @@ export async function lerPlanilha(arquivo) {
       // para bater com a coluna linha_excel do gabarito
       linha: indice + posicao + 2,
       id: String(bruto.id).trim(),
-      empresa: String(bruto.empresa).trim(),
-      consultor: String(bruto.consultor).trim(),
+      empresa: limparTexto(bruto.empresa),
+      consultor: limparTexto(bruto.consultor),
+      email: String(bruto.email).trim(),
       segmento: padronizar(bruto.segmento, listas.segmentos, APELIDOS_SEGMENTO) || 'Não informado',
       segmentoOriginal: String(bruto.segmento).trim(),
       nivel: padronizar(bruto.nivel, listas.niveis) || '-',
@@ -281,7 +297,7 @@ export async function lerPlanilha(arquivo) {
       dataInicio: interpretarData(bruto.dataInicio)
     }
 
-    registro.erros = validar(registro, bruto, listas, vistos)
+    registro.erros = validar(registro, bruto, listas, vistos, mapa.email !== undefined)
     registro.valida = registro.erros.length === 0
     registro.ativo = registro.status === 'ATIVO'
 

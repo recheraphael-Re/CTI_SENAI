@@ -35,6 +35,27 @@ test('números inválidos não viram zero e faixas preservam ponto médio', () =
   assert.equal(interpretarNumero('0'), 0)
 })
 
+test('valida coluna opcional de e-mail e limpa espaços dos textos', async () => {
+  const colunas = [...cabecalho, 'email']
+  const resultado = await lerPlanilha(planilha(colunas, [
+    ['C1', '  Empresa   Um  ', ' Ana   Silva ', ...linha.slice(3), ' contato@empresa.com '],
+    ['C2', ...linha.slice(1), 'sem-arroba.com'],
+    ['C3', ...linha.slice(1), ''],
+    ['C4', ...linha.slice(1), 'nome sobrenome@empresa.com']
+  ]))
+  assert.equal(resultado.clientes[0].empresa, 'Empresa Um')
+  assert.equal(resultado.clientes[0].consultor, 'Ana Silva')
+  assert.equal(resultado.clientes[0].email, 'contato@empresa.com')
+  assert.equal(resultado.clientes[0].valida, true)
+  assert.equal(resultado.dadosOriginais[0].empresa, '  Empresa   Um  ')
+  assert.deepEqual(resultado.erros.map(e => [e.linha, e.tipo, e.campo]), [
+    [3, 'EMAIL_INVALIDO', 'email'],
+    [4, 'CAMPO_OBRIGATORIO', 'email'],
+    [5, 'EMAIL_INVALIDO', 'email']
+  ])
+  assert.equal((await lerPlanilha(planilha())).resumo.validas, 1)
+})
+
 test('exige colunas e rejeita cabeçalhos ambíguos', async () => {
   await assert.rejects(lerPlanilha(planilha(['codigo_cliente', 'cliente'], [['C1', 'Empresa']])), /Colunas obrigatórias ausentes/)
   await assert.rejects(lerPlanilha(planilha([...cabecalho, 'faturamento_mensal'], [[...linha, 1000]])), /ambiguidade/)

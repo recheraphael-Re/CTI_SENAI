@@ -1,0 +1,5 @@
+codigo_cliente;cliente;consultor;segmento;nivel;faturamento_anual;servico;email
+C1;  Empresa   Um  ; Ana   Silva ;Tecnologia;A;12000;Internet Dedicada; contato@empresa.com
+C2;Empresa Dois;Bruno Lima;Varejo;B;24000;Internet Dedicada;sem-arroba.com
+C3;Empresa Tres;Carla Mendes;Saúde;C;36000;Internet Dedicada;
+C4;Empresa Quatro;Ana Silva;Indústria;A;48000;Internet Dedicada;nome sobrenome@empresa.com

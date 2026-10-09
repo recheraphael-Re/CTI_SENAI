@@ -14,6 +14,16 @@
       <p class="mt-4 font-semibold" :class="store.totalComErro ? 'text-rose-600' : 'text-emerald-600'">
         {{ store.totalComErro ? 'Foram encontrados erros na planilha. Confira os problemas na tabela abaixo.' : 'Planilha validada sem erros.' }}
       </p>
+      <div class="mt-4">
+        <h3 class="font-semibold">Ocorrências por tipo de erro</h3>
+        <ul v-if="store.errosPorTipo.length" class="mt-2 flex flex-wrap gap-2">
+          <li v-for="item in store.errosPorTipo" :key="item.tipo" class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+            {{ item.tipo.replaceAll('_', ' ') }}: {{ item.quantidade }}
+          </li>
+        </ul>
+        <p v-else class="mt-2 text-sm text-emerald-600">Nenhuma ocorrência de erro.</p>
+        <p class="mt-2 text-sm text-slate-500">Uma linha pode apresentar mais de um erro.</p>
+      </div>
     </section>
     <div class="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
       <p class="text-slate-600 dark:text-slate-400">
@@ -101,7 +111,9 @@
             </td>
             <td class="min-w-64 px-4 py-3">
               <ul v-if="cliente.erros.length" class="list-disc space-y-1 pl-4 text-rose-600 dark:text-rose-400">
-                <li v-for="(erro, indice) in cliente.erros" :key="indice">{{ erro.descricao }}</li>
+                <li v-for="(erro, indice) in cliente.erros" :key="indice">
+                  <strong>{{ erro.campo }}</strong> ({{ erro.tipo }}): {{ erro.descricao }}
+                </li>
               </ul>
               <span v-else class="text-emerald-600">Sem erros</span>
             </td>
