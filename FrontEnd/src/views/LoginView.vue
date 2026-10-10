@@ -43,6 +43,10 @@
           Acessar demonstração
         </button>
       </form>
+      <p class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+        Ainda não tem uma conta?
+        <RouterLink to="/cadastro" class="font-semibold text-brand hover:underline dark:text-brand-light">Cadastre-se</RouterLink>
+      </p>
     </div>
   </section>
 </template>

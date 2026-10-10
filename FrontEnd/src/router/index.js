@@ -9,6 +9,7 @@ import HomeView from '@/views/HomeView.vue'
 
 // Demais views carregadas sob demanda (lazy loading)
 const LoginView = () => import('@/views/LoginView.vue')
+const CadastroView = () => import('@/views/CadastroView.vue')
 const UploadView = () => import('@/views/UploadView.vue')
 const RelatoriosView = () => import('@/views/RelatoriosView.vue')
 const GraficosView = () => import('@/views/GraficosView.vue')
@@ -20,7 +21,8 @@ const routes = [
     component: PublicLayout,
     children: [
       { path: '', name: 'home', component: HomeView },
-      { path: 'login', name: 'login', component: LoginView }
+      { path: 'login', name: 'login', component: LoginView },
+      { path: 'cadastro', name: 'cadastro', component: CadastroView }
     ]
   },
 
