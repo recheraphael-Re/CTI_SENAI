@@ -6,30 +6,32 @@
         Bem-vindo de volta!
       </h2>
       <p class="text-center text-slate-600 dark:text-slate-400 mt-1 mb-6">
-        Acesso demonstrativo — autenticação ainda não implementada. Não informe sua senha real.
+        {{ modoDemonstracao ? 'Demonstração para as aulas. Entre no painel sem e-mail ou senha.' : 'Entre com sua conta aprovada pelo administrador.' }}
       </p>
 
+      <p v-if="!modoDemonstracao && route.query.motivo === 'sessao'" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">Sua sessão precisa ser validada. Entre novamente.</p>
+      <p v-if="erro" role="alert" class="mb-4 text-sm text-red-600 dark:text-red-400">{{ erro }}</p>
       <form class="flex flex-col gap-4" @submit.prevent="entrar">
-        <div>
+        <div v-if="!modoDemonstracao">
           <label for="email" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             E-mail corporativo
           </label>
           <input
             id="email"
-            v-model="email" disabled
+            v-model="email" required autocomplete="username" maxlength="254"
             type="email"
             placeholder="usuario@cti.com.br"
             class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-slate-900 dark:text-slate-100 outline-none focus:border-brand"
           />
         </div>
 
-        <div>
+        <div v-if="!modoDemonstracao">
           <label for="senha" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Senha
           </label>
           <input
             id="senha"
-            v-model="senha" disabled
+            v-model="senha" required autocomplete="current-password"
             type="password"
             placeholder="••••••••"
             class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-slate-900 dark:text-slate-100 outline-none focus:border-brand"
@@ -37,13 +39,13 @@
         </div>
 
         <button
-          type="submit"
+          type="submit" :disabled="carregando"
           class="mt-2 bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold"
         >
-          Acessar demonstração
+          {{ modoDemonstracao ? 'Acessar demonstração' : (carregando ? 'Entrando...' : 'Entrar') }}
         </button>
       </form>
-      <p class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+      <p v-if="!modoDemonstracao" class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
         Ainda não tem uma conta?
         <RouterLink to="/cadastro" class="font-semibold text-brand hover:underline dark:text-brand-light">Cadastre-se</RouterLink>
       </p>
@@ -52,15 +54,28 @@
 </template>
 
 <script setup>
+import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
+import { mensagemErro } from '../services/api.js'
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const email = ref('')
 const senha = ref('')
-
-// Sem back-end ainda: apenas leva o usuário para a tela de upload
-function entrar() {
-  router.push('/app/upload')
+const erro = ref('')
+const carregando = ref(false)
+async function entrar() {
+  if (modoDemonstracao) { await router.push('/app/upload'); return }
+  if (carregando.value) return
+  carregando.value = true
+  erro.value = ''
+  try {
+    await auth.login(email.value, senha.value)
+    const destino = route.query.redirect
+    await router.replace(typeof destino === 'string' && destino.startsWith('/app/') ? destino : '/app/graficos')
+  } catch (e) { erro.value = mensagemErro(e) }
+  finally { carregando.value = false; senha.value = '' }
 }
 </script>

@@ -1,3 +1,6 @@
+import { modoDemonstracao } from '../utils/modoAcesso.js'
+import { criarProtecao } from './protecao.js'
+import { useAuthStore } from '../stores/auth.js'
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Layouts
@@ -30,8 +33,10 @@ const routes = [
   {
     path: '/app',
     component: AppLayout,
+    meta: { requiresAuth: true },
     redirect: '/app/upload', // Ao acessar /app, cai na tela principal interna
     children: [
+      { path: 'usuarios', name: 'usuarios', component: () => import('@/views/UsuariosView.vue'), meta: { admin: true } },
       { path: 'upload', name: 'upload', component: UploadView },
       { path: 'relatorios', name: 'relatorios', component: RelatoriosView },
       { path: 'graficos', name: 'graficos', component: GraficosView }
@@ -47,6 +52,15 @@ const router = createRouter({
   routes,
   // Rola até a âncora quando houver (#sobre, #contato); senão, volta ao topo
   scrollBehavior: (to) => (to.hash ? { el: to.hash, behavior: 'smooth' } : { top: 0 })
+})
+
+router.beforeEach(to => {
+  if (modoDemonstracao) {
+    // A demonstração libera apenas as telas locais, sem conceder perfil ADMIN.
+    if (to.meta.admin) return { name: 'upload' }
+    return
+  }
+  return criarProtecao(useAuthStore())(to)
 })
 
 export default router

@@ -1,3 +1,5 @@
+> **Estado atual: demonstração para as aulas.** Sem configuração, upload, relatórios e gráficos abrem sem login nem chamadas de autenticação. A tela identifica o modo demonstração; cadastro e administração ficam indisponíveis. A planilha continua na sessão ao voltar ao site. Para retomar a integração futura, defina `VITE_MODO_ACESSO=api` em `FrontEnd/.env.local` e reinicie o Vite. As regras de autenticação descritas abaixo aplicam-se ao modo API, que depende do backend.
+
 ﻿# CTI Insights — Projeto Integrador II 2026/02
 
 Front-end acadêmico em Vue 3, Vite, Tailwind CSS, Pinia e Chart.js para importar e analisar a carteira de clientes da CTI.
@@ -45,7 +47,7 @@ o resultado importado permanece na sessão. Teste a seleção e o arrastar e sol
 um arquivo inválido e o descarte da planilha.
 
 Backend, PostgreSQL e Azure ficam para a próxima etapa. O planejamento está em
-`src/services/README_FUTURO_BACKEND.md`; esta aula não utiliza Axios nem API.
+`src/services/README_FUTURO_BACKEND.md`; a Aula 11 acrescenta o cliente Axios para autenticação.
 
 Os filtros de segmento e nível afetam os gráficos de contagem e a análise descritiva.
 Os indicadores gerais e o gráfico de faturamento mostram a base completa, conforme os rótulos.
@@ -81,7 +83,7 @@ isso não substitui banco de dados e pode falhar se a capacidade do navegador fo
 A chave da sessão foi versionada para que dados importados sob regras antigas não escapem
 das novas validações: reimporte a planilha após esta atualização.
 
-O login é uma demonstração sem autenticação; seus campos estão desabilitados.
+Login e cadastro agora chamam a API; o painel exige conta ativa e a administração exige ADMIN. Sem backend, o login informa falha de conexão. Veja `src/services/CONTRATO_API.md` e `.env.example`.
 O formulário de contato não envia nem armazena mensagens e informa essa limitação.
 
 ## Pendências do PI2
@@ -98,3 +100,10 @@ O formulário de contato não envia nem armazena mensagens e informa essa limita
   e comprovante SAGA. Documentação de Automação Industrial e Relações Humanas.
 
 Utilizar a base fictícia para demonstrações e manter credenciais fora do repositório.
+
+## Aula 11 — autenticação e administração
+
+Contrato proposto, configuração e checklist: [CONTRATO_API.md](src/services/CONTRATO_API.md).
+As rotas `/app/*` exigem sessão e `/app/usuarios` exige ADMIN. Após login, o painel abre em `/app/graficos`. O backend deve implementar os cinco endpoints do contrato, incluindo `/auth/me` para restaurar a sessão após F5. Não há contas de demonstração ou backend incluído.
+
+O token permanece no sessionStorage da aba; logout remove a sessão e limpa a planilha importada. Senhas não são persistidas. O servidor deve aplicar autorização em todas as rotas protegidas.

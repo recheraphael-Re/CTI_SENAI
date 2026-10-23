@@ -1,16 +1,17 @@
 <template>
   <section class="flex justify-center py-10 md:py-16">
     <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-      <h2 class="text-center text-2xl font-bold text-slate-900 dark:text-slate-100">Crie sua conta</h2>
+      <h2 class="text-center text-2xl font-bold text-slate-900 dark:text-slate-100">Solicitar acesso</h2>
       <p class="mt-2 mb-6 text-center text-sm text-slate-600 dark:text-slate-400">
-        Cadastro demonstrativo. Use dados fictícios: sua conta ainda não será criada.
+        {{ modoDemonstracao ? 'Cadastro temporariamente indisponível.' : 'Solicite sua conta e aguarde a aprovação do administrador.' }}
       </p>
 
       <div v-if="concluido" role="status" class="mb-6 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-        Formulário validado! Quando o backend estiver disponível, será possível criar sua conta. Nenhum dado foi salvo.
+        Solicitação enviada. Aguarde a aprovação do administrador.
       </div>
 
-      <form class="flex flex-col gap-4" @submit.prevent="cadastrar" @input="concluido = false">
+      <p v-if="modoDemonstracao" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">O cadastro ficará disponível nas próximas aulas, com o backend. Por enquanto, use <RouterLink to="/app/upload" class="font-semibold underline">o painel demonstrativo</RouterLink>.</p>
+      <form v-if="!modoDemonstracao" class="flex flex-col gap-4" @submit.prevent="cadastrar" @input="concluido = false">
         <div>
           <label for="cadastro-nome" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Nome completo</label>
           <input id="cadastro-nome" v-model="nome" required maxlength="120" autocomplete="name" placeholder="Seu nome completo" class="campo" />
@@ -22,7 +23,7 @@
         <div>
           <label for="cadastro-senha" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Senha</label>
           <input id="cadastro-senha" v-model="senha" required :type="mostrarSenha ? 'text' : 'password'" minlength="8" autocomplete="new-password" aria-describedby="senha-ajuda" class="campo" />
-          <p id="senha-ajuda" class="mt-1 text-xs text-slate-500 dark:text-slate-400">Use pelo menos 8 caracteres e uma senha fictícia nesta demonstração.</p>
+          <p id="senha-ajuda" class="mt-1 text-xs text-slate-500 dark:text-slate-400">Use pelo menos 8 caracteres para sua senha.</p>
         </div>
         <div>
           <label for="cadastro-confirmacao" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Confirme a senha</label>
@@ -32,8 +33,8 @@
           <input v-model="mostrarSenha" type="checkbox" class="accent-brand" /> Mostrar senhas
         </label>
         <p v-if="erro" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ erro }}</p>
-        <button type="submit" class="mt-2 rounded-lg bg-gradient-to-r from-brand to-brand-accent px-6 py-3 font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-          Testar cadastro
+        <button type="submit" :disabled="carregando" class="mt-2 rounded-lg bg-gradient-to-r from-brand to-brand-accent px-6 py-3 font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+          {{ carregando ? 'Enviando...' : 'Enviar solicitação' }}
         </button>
       </form>
       <p class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
@@ -45,8 +46,10 @@
 </template>
 
 <script setup>
+import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import api, { mensagemErro } from '../services/api.js'
 
 const nome = ref('')
 const email = ref('')
@@ -55,8 +58,10 @@ const confirmacao = ref('')
 const mostrarSenha = ref(false)
 const erro = ref('')
 const concluido = ref(false)
+const carregando = ref(false)
 
-function cadastrar() {
+async function cadastrar() {
+  if (carregando.value) return
   erro.value = ''
   concluido.value = false
   if (!nome.value.trim()) {
@@ -68,12 +73,17 @@ function cadastrar() {
     return
   }
 
-  // Integração futura: enviar os dados à API de cadastro antes de confirmar sucesso.
-  // A demonstração apenas valida o formulário; não armazena dados nem autentica.
-  senha.value = ''
-  confirmacao.value = ''
-  mostrarSenha.value = false
-  concluido.value = true
+  carregando.value = true
+  try {
+    await api.post('/auth/register', { nome: nome.value.trim(), email: email.value.trim(), senha: senha.value })
+    concluido.value = true
+  } catch (e) { erro.value = mensagemErro(e) }
+  finally {
+    carregando.value = false
+    senha.value = ''
+    confirmacao.value = ''
+    mostrarSenha.value = false
+  }
 }
 </script>
 

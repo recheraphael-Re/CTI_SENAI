@@ -1,3 +1,5 @@
 # A raiz so tem os atalhos de npm; as dependencias ficam em FrontEnd/
 node_modules/
 package-lock.json
+
+.npm-cache/

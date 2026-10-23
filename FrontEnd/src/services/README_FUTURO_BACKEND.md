@@ -1,13 +1,7 @@
-# Integração futura — Aula 9
+# Integração com o backend — Aula 11
 
-Nesta aula, a planilha é lida e tratada no navegador. Não há envio para API nem gravação em banco.
+O cliente Axios em `api.js` e o store `../stores/auth.js` implementam o lado Vue de autenticação e administração. O contrato proposto está em [CONTRATO_API.md](CONTRATO_API.md).
 
-Fluxo atual: `UploadView.vue` → `uploadStore.js` → `planilha.js` → prévia dos dados.
+O backend Spring Boot ainda não está neste repositório. É necessário implementar os endpoints descritos no contrato para utilizar o painel. A API indisponível produz mensagem de erro; não há autenticação simulada.
 
-Na próxima etapa, esta pasta poderá receber `api.js`, com um cliente Axios configurado para a API Spring Boot. Uma action do store poderá enviar o arquivo e receber o resultado da importação.
-
-O Spring Boot deverá validar os dados novamente e cuidar da persistência no PostgreSQL. A configuração e publicação no Azure serão definidas nessa etapa. O Vue não acessará o banco diretamente.
-
-Antes de implementar: definir contrato de entrada e resposta, autenticação, tratamento de erros, CORS e URL por ambiente. Não colocar credenciais do banco no front-end.
-
-Axios não é necessário para o fluxo atual e não foi instalado nesta aula.
+Upload, tratamento, gráficos e relatórios continuam sendo processados no navegador. Persistência e histórico de importações serão integrados em uma próxima etapa. O Vue não acessa PostgreSQL diretamente.

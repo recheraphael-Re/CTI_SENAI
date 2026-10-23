@@ -22,7 +22,7 @@
     <!-- Links das telas internas -->
     <nav class="flex flex-1 flex-col gap-1 overflow-hidden px-2 py-4">
       <RouterLink
-        v-for="item in itens"
+        v-for="item in itensVisiveis"
         :key="item.to"
         :to="item.to"
         class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -37,21 +37,18 @@
 
     <!-- Voltar ao site público -->
     <div class="overflow-hidden border-t border-slate-200 p-2 dark:border-slate-800">
-      <RouterLink
-        to="/"
-        class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
-        @click="$emit('navegar')"
-      >
-        <span class="shrink-0 text-lg">↩</span>
-        <span v-show="aberta" class="truncate font-medium">Sair do painel</span>
-      </RouterLink>
+      <button type="button" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" @click="sair">
+        <span aria-hidden="true">↩</span><span v-show="aberta">{{ modoDemonstracao ? 'Voltar ao site' : 'Sair' }}</span>
+      </button>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { modoDemonstracao } from '../utils/modoAcesso.js'
+import { ref, computed } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
 
 // Propriedade: o layout controla se a barra está aberta ou recolhida
 defineProps({
@@ -61,9 +58,18 @@ defineProps({
 // Evento para o layout fechar a barra no celular após escolher uma tela
 defineEmits(['navegar'])
 
+const auth = useAuthStore()
+const router = useRouter()
+function sair() {
+  if (modoDemonstracao) { router.replace('/'); return }
+  auth.logout()
+  router.replace('/login')
+}
 const itens = ref([
+  { rotulo: 'Usuários', to: '/app/usuarios', icone: '👥', admin: true },
   { rotulo: 'Upload', to: '/app/upload', icone: '📤' },
   { rotulo: 'Relatórios', to: '/app/relatorios', icone: '📋' },
   { rotulo: 'Gráficos', to: '/app/graficos', icone: '📈' }
 ])
+const itensVisiveis = computed(() => itens.value.filter(item => !item.admin || (!modoDemonstracao && auth.isAdmin)))
 </script>
