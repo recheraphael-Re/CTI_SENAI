@@ -34,6 +34,7 @@ build/
 
 # Credenciais locais
 .jwt-secret.local
+*.log
 .env
 .env.*
 !.env.example

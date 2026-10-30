@@ -2,7 +2,7 @@
 
 ## 1. Entidades e relacionamentos
 
-As entidades persistidas estao em `src/main/java/com/senai/provedor/models`. O pacote `pratica` continua contendo os exemplos independentes de POO.
+As entidades persistidas estao em `src/main/java/com/cti/provedor/model`. Os exemplos independentes de POO estao em `examples/java/com/senai/provedor/pratica`, fora da aplicacao Spring Boot.
 
 - Consultor: nome, matricula (opcional), email, senha, telefone; possui varios clientes.
 - Cliente: codigoCTI (opcional), nomeEmpresa, segmento, nivel A/B/C, faturamentoAnual, faixaFaturamento (texto opcional), status; pertence a um consultor e possui contratos e insights.
