@@ -1,4 +1,4 @@
-> **Estado atual: demonstração para as aulas.** Sem configuração, upload, relatórios e gráficos abrem sem login nem chamadas de autenticação. A tela identifica o modo demonstração; cadastro e administração ficam indisponíveis. A planilha continua na sessão ao voltar ao site. Para retomar a integração futura, defina `VITE_MODO_ACESSO=api` em `FrontEnd/.env.local` e reinicie o Vite. As regras de autenticação descritas abaixo aplicam-se ao modo API, que depende do backend.
+> **Acesso ao sistema:** cadastro e login utilizam o backend Spring Boot. O painel exige uma conta ativa e senha. Configure `VITE_API_URL=http://localhost:8080` em `FrontEnd/.env.local` se necessário e reinicie o Vite. Novas contas aguardam aprovação do administrador. Veja as instruções em [README do backend](../BackEnd/README.md).
 
 ﻿# CTI Insights — Projeto Integrador II 2026/02
 
@@ -46,7 +46,7 @@ O objeto File permanece em memória e deve ser selecionado novamente após F5;
 o resultado importado permanece na sessão. Teste a seleção e o arrastar e soltar,
 um arquivo inválido e o descarte da planilha.
 
-Backend, PostgreSQL e Azure ficam para a próxima etapa. O planejamento está em
+O backend Spring Boot já está implementado. Configure o PostgreSQL conforme o README do backend. A publicação no Azure fica para a próxima etapa. O planejamento está em
 `src/services/README_FUTURO_BACKEND.md`; a Aula 11 acrescenta o cliente Axios para autenticação.
 
 Os filtros de segmento e nível afetam os gráficos de contagem e a análise descritiva.

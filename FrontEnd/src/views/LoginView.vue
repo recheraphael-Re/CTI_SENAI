@@ -6,13 +6,13 @@
         Bem-vindo de volta!
       </h2>
       <p class="text-center text-slate-600 dark:text-slate-400 mt-1 mb-6">
-        {{ modoDemonstracao ? 'Demonstração para as aulas. Entre no painel sem e-mail ou senha.' : 'Entre com sua conta aprovada pelo administrador.' }}
+        Entre com sua conta aprovada pelo administrador.
       </p>
 
-      <p v-if="!modoDemonstracao && route.query.motivo === 'sessao'" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">Sua sessão precisa ser validada. Entre novamente.</p>
+      <p v-if="route.query.motivo === 'sessao'" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">Sua sessão precisa ser validada. Entre novamente.</p>
       <p v-if="erro" role="alert" class="mb-4 text-sm text-red-600 dark:text-red-400">{{ erro }}</p>
       <form class="flex flex-col gap-4" @submit.prevent="entrar">
-        <div v-if="!modoDemonstracao">
+        <div>
           <label for="email" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             E-mail corporativo
           </label>
@@ -25,7 +25,7 @@
           />
         </div>
 
-        <div v-if="!modoDemonstracao">
+        <div>
           <label for="senha" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Senha
           </label>
@@ -42,10 +42,10 @@
           type="submit" :disabled="carregando"
           class="mt-2 bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold"
         >
-          {{ modoDemonstracao ? 'Acessar demonstração' : (carregando ? 'Entrando...' : 'Entrar') }}
+          {{ carregando ? 'Entrando...' : 'Entrar' }}
         </button>
       </form>
-      <p v-if="!modoDemonstracao" class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+      <p class="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
         Ainda não tem uma conta?
         <RouterLink to="/cadastro" class="font-semibold text-brand hover:underline dark:text-brand-light">Cadastre-se</RouterLink>
       </p>
@@ -54,7 +54,6 @@
 </template>
 
 <script setup>
-import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
@@ -67,7 +66,6 @@ const senha = ref('')
 const erro = ref('')
 const carregando = ref(false)
 async function entrar() {
-  if (modoDemonstracao) { await router.push('/app/upload'); return }
   if (carregando.value) return
   carregando.value = true
   erro.value = ''

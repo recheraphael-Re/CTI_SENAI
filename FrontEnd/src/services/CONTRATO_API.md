@@ -1,4 +1,4 @@
-> **Estado atual: demonstração para as aulas.** Sem configuração, upload, relatórios e gráficos abrem sem login nem chamadas de autenticação. A tela identifica o modo demonstração; cadastro e administração ficam indisponíveis. A planilha continua na sessão ao voltar ao site. Para retomar a integração futura, defina `VITE_MODO_ACESSO=api` em `FrontEnd/.env.local` e reinicie o Vite. As regras de autenticação descritas abaixo aplicam-se ao modo API, que depende do backend.
+> **Acesso ao sistema:** cadastro e login utilizam o backend Spring Boot. O painel exige uma conta ativa e senha. Configure `VITE_API_URL=http://localhost:8080` em `FrontEnd/.env.local` se necessário e reinicie o Vite. Novas contas aguardam aprovação do administrador. Veja as instruções em [README do backend](../../../BackEnd/README.md).
 
 # 1. Contrato proposto de autenticação — Aula 11
 
@@ -28,9 +28,9 @@ Exemplo:
 | POST /auth/login | Público | email, senha | 200: objeto com token e usuario |
 | GET /auth/me | Bearer, usuário ATIVO | Sem corpo | 200: UsuarioResposta atualizado |
 | GET /admin/usuarios | Bearer, ADMIN ATIVO | Sem corpo | 200: array de UsuarioResposta, inclusive pendentes e bloqueados |
-| PATCH /admin/usuarios/{id}/status | Bearer, ADMIN ATIVO | status: ATIVO ou BLOQUEADO | 200: UsuarioResposta atualizado |
+| PATCH /admin/usuarios/{id}/status | Bearer, ADMIN ATIVO | status: ATIVO ou BLOQUEADO; perfil opcional: USER ou ADMIN | 200: UsuarioResposta atualizado |
 
-O front não envia perfil nem status no cadastro. O servidor os define. Não existe criação pública de ADMIN; provisionar o administrador inicial por processo do backend, sem credenciais no Git. Proposta: impedir bloqueio do próprio administrador e do último ADMIN ativo com 409.
+O front não envia perfil nem status no cadastro. O servidor os define. Não existe criação pública de ADMIN; provisionar o administrador inicial por processo do backend, sem credenciais no Git. Na aprovação, o administrador escolhe Usuário (USER) ou Administrador (ADMIN); perfil e status são gravados juntos. Se perfil for omitido, mantém-se o atual. Bloquear ou rebaixar a própria conta e remover o último ADMIN ativo retorna 409. Somente administradores podem alterar o perfil de outras contas.
 
 ## 3.1 Login
 

@@ -27,10 +27,10 @@
       <!-- Informações do usuário -->
       <div class="flex items-center gap-2">
         <span class="hidden text-sm font-medium text-slate-600 sm:block dark:text-slate-400">
-          {{ modoDemonstracao ? 'Demonstração' : auth.usuario?.nome }}
+          {{ auth.usuario?.nome }}
         </span>
         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-accent font-bold text-white">
-          {{ modoDemonstracao ? 'D' : auth.usuario?.nome?.charAt(0).toUpperCase() }}
+          {{ auth.usuario?.nome?.charAt(0).toUpperCase() }}
         </span>
       </div>
     </div>
@@ -38,7 +38,6 @@
 </template>
 
 <script setup>
-import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'

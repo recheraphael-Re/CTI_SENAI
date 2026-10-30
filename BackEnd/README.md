@@ -4,10 +4,12 @@ API Spring Boot 4.1.1 / Java 21 com PostgreSQL, Spring Security, BCrypt e JWT.
 
 ## Executar no PowerShell
 
+Para iniciar com uma chave JWT local persistente (ignorada pelo Git), execute `powershell -ExecutionPolicy Bypass -File .\BackEnd\iniciar.ps1` na raiz do repositorio. Se estiver dentro de BackEnd, use `powershell -ExecutionPolicy Bypass -File .\iniciar.ps1`. As configuracoes de banco existentes continuam sendo utilizadas. Uma nova chave invalida tokens anteriores; entre novamente no sistema.
+
 Na raiz do repositorio:
 
 ```powershell
-cd BackEnd/CTI_SENAI
+cd BackEnd
 $env:DB_URL = "jdbc:postgresql://localhost:5432/cti_provedor"
 $env:DB_USERNAME = "postgres"
 $env:DB_PASSWORD = "<senha-do-seu-banco>"
@@ -56,7 +58,7 @@ O Hibernate usa update por padrao para desenvolvimento. Em ambiente controlado, 
 
 ## FrontEnd
 
-O contrato de auth/admin existente em FrontEnd/src/services/CONTRATO_API.md foi implementado. Para usar a integracao, configure `VITE_MODO_ACESSO=api` e `VITE_API_URL=http://localhost:8080` em FrontEnd/.env.local e reinicie o Vite. O modo demonstracao atual foi mantido. Senhas acima de 72 bytes sao recusadas pelo servidor.
+O contrato de auth/admin existente em FrontEnd/src/services/CONTRATO_API.md foi implementado. Para usar a integracao, configure `VITE_API_URL=http://localhost:8080` em FrontEnd/.env.local e reinicie o Vite. O painel exige autenticacao; cadastro e login utilizam a API por padrao. Senhas acima de 72 bytes sao recusadas pelo servidor.
 
 ## Testes
 

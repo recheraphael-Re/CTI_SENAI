@@ -25,6 +25,12 @@
       >
         Acessar sistema
       </RouterLink>
+      <RouterLink
+        to="/cadastro"
+        class="bg-white dark:bg-slate-800 border border-brand text-brand dark:text-brand-light px-6 py-3 rounded-lg hover:bg-brand/10 transition font-semibold"
+      >
+        Criar minha conta
+      </RouterLink>
       <a
         href="#servicos"
         class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-lg hover:border-brand-light hover:text-brand dark:hover:text-brand-light transition font-semibold"

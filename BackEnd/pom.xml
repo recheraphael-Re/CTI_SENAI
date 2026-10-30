@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+<!--  versão do formato do pom (sempre 4.0.0)  -->
+<!--  O 'pai': traz o Spring Boot com as versões certas de todas as bibliotecas  -->
+<parent>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-parent</artifactId>
+<version>3.5.6</version>
+<!--  versão do Spring Boot  -->
+<relativePath/>
+</parent>
+<!--  Identidade do nosso projeto  -->
+<groupId>com.cti</groupId>
+<artifactId>cti-provedor-api</artifactId>
+<!--  nome do projeto  -->
+<version>1.0.0</version>
+<!--  versão do nosso projeto  -->
+<name>cti-provedor-api</name>
+<description>API do CTI Provedor: login JWT, validação da planilha e envio ao Python</description>
+<properties>
+<java.version>21</java.version>
+<!--  usa o Java 21  -->
+<jjwt.version>0.12.6</jjwt.version>
+<!--  versão da biblioteca de token JWT  -->
+</properties>
+<!--  Bibliotecas que o projeto usa (o Maven baixa sozinho)  -->
+<dependencies>
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<!--  cria a API: controllers e rotas HTTP  -->
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+<!--  segurança: login, BCrypt e quem pode entrar  -->
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<!--  acesso ao banco (model e repository)  -->
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+<!--  validações dos DTOs (@NotBlank, @Email...)  -->
+<dependency>
+<groupId>org.postgresql</groupId>
+<artifactId>postgresql</artifactId>
+<scope>runtime</scope>
+</dependency>
+<!--  driver que conversa com o PostgreSQL (Neon/Azure)  -->
+<!--  JWT  -->
+<dependency>
+<groupId>io.jsonwebtoken</groupId>
+<artifactId>jjwt-api</artifactId>
+<version>${jjwt.version}</version>
+</dependency>
+<!--  cria e lê o token JWT  -->
+<dependency>
+<groupId>io.jsonwebtoken</groupId>
+<artifactId>jjwt-impl</artifactId>
+<version>${jjwt.version}</version>
+<scope>runtime</scope>
+</dependency>
+<!--  parte interna do JWT  -->
+<dependency>
+<groupId>io.jsonwebtoken</groupId>
+<artifactId>jjwt-jackson</artifactId>
+<version>${jjwt.version}</version>
+<scope>runtime</scope>
+</dependency>
+<!--  JWT lê e escreve JSON  -->
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-test</artifactId>
+<scope>test</scope>
+</dependency>
+<dependency>
+<groupId>com.h2database</groupId>
+<artifactId>h2</artifactId>
+<scope>test</scope>
+</dependency>
+</dependencies>
+<!--  Como gerar o arquivo final (mvn clean package)  -->
+<build>
+<finalName>cti-provedor-api</finalName>
+<!--  nome do arquivo gerado: target/cti-provedor-api.jar  -->
+<resources>
+<resource>
+<directory>src/main/resources</directory>
+</resource>
+<!--  inclui application.properties e schema.sql  -->
+</resources>
+<plugins>
+<plugin>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-maven-plugin</artifactId>
+<!--  empacota tudo num .jar que roda com java -jar  -->
+</plugin>
+</plugins>
+</build>
+</project>

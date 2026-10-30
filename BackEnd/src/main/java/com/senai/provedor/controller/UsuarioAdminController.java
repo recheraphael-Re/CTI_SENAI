@@ -12,6 +12,6 @@ public class UsuarioAdminController {
     public UsuarioAdminController(UsuarioAdminService service) { this.service = service; }
     @GetMapping public List<UsuarioResponse> listar() { return service.listar(); }
     @PatchMapping("/{id}/status") public UsuarioResponse alterar(@PathVariable Long id, @Valid @RequestBody StatusRequest dados, Principal principal) {
-        return service.alterar(id, dados.status(), principal.getName());
+        return service.alterar(id, dados.status(), dados.perfil(), principal.getName());
     }
 }

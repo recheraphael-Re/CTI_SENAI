@@ -47,6 +47,25 @@ class AuthIntegrationTest {
         res = request("POST", "/auth/login", login, null); assertEquals(200, res.statusCode()); assertTrue(res.body().contains("token"));
         assertEquals(401, request("POST", "/auth/login", login.replace("senha123", "errada"), null).statusCode());
     }
+    @Test void administradorClassificaCadastroEProtegePermissoes() throws Exception {
+        Usuario admin = user("admin@example.com", Perfil.ADMIN);
+        Usuario novo = user("novo@example.com", Perfil.USER);
+        novo.setStatus(StatusUsuario.PENDENTE); repository.saveAndFlush(novo);
+        String tokenAdmin = jwt.gerar(admin);
+        String rota = "/admin/usuarios/" + novo.getId() + "/status";
+        assertEquals(200, request("PATCH", rota, "{\"status\":\"ATIVO\",\"perfil\":\"ADMIN\"}", tokenAdmin).statusCode());
+        novo = repository.findById(novo.getId()).orElseThrow();
+        assertEquals(Perfil.ADMIN, novo.getPerfil());
+        assertEquals(StatusUsuario.ATIVO, novo.getStatus());
+        String tokenNovo = jwt.gerar(novo);
+        assertEquals(200, request("GET", "/admin/usuarios", null, tokenNovo).statusCode());
+        assertEquals(400, request("PATCH", rota, "{\"status\":\"ATIVO\",\"perfil\":\"INVALIDO\"}", tokenAdmin).statusCode());
+        assertEquals(409, request("PATCH", rota, "{\"status\":\"ATIVO\",\"perfil\":\"USER\"}", tokenNovo).statusCode());
+        assertEquals(200, request("PATCH", rota, "{\"status\":\"ATIVO\",\"perfil\":\"USER\"}", tokenAdmin).statusCode());
+        assertEquals(403, request("GET", "/admin/usuarios", null, tokenNovo).statusCode());
+        assertEquals(403, request("PATCH", "/admin/usuarios/" + admin.getId() + "/status", "{\"status\":\"ATIVO\",\"perfil\":\"ADMIN\"}", tokenNovo).statusCode());
+        assertEquals(409, request("PATCH", "/admin/usuarios/" + admin.getId() + "/status", "{\"status\":\"ATIVO\",\"perfil\":\"USER\"}", tokenAdmin).statusCode());
+    }
     @Test void protegeRotasERevogaBloqueado() throws Exception {
         assertEquals(200, request("GET", "/api/publico", null, null).statusCode());
         assertEquals(401, request("GET", "/clientes", null, null).statusCode());

@@ -3,15 +3,14 @@
     <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:p-8">
       <h2 class="text-center text-2xl font-bold text-slate-900 dark:text-slate-100">Solicitar acesso</h2>
       <p class="mt-2 mb-6 text-center text-sm text-slate-600 dark:text-slate-400">
-        {{ modoDemonstracao ? 'Cadastro temporariamente indisponível.' : 'Solicite sua conta e aguarde a aprovação do administrador.' }}
+        Solicite sua conta e aguarde a aprovação do administrador.
       </p>
 
       <div v-if="concluido" role="status" class="mb-6 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
         Solicitação enviada. Aguarde a aprovação do administrador.
       </div>
 
-      <p v-if="modoDemonstracao" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">O cadastro ficará disponível nas próximas aulas, com o backend. Por enquanto, use <RouterLink to="/app/upload" class="font-semibold underline">o painel demonstrativo</RouterLink>.</p>
-      <form v-if="!modoDemonstracao" class="flex flex-col gap-4" @submit.prevent="cadastrar" @input="concluido = false">
+      <form class="flex flex-col gap-4" @submit.prevent="cadastrar" @input="concluido = false">
         <div>
           <label for="cadastro-nome" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Nome completo</label>
           <input id="cadastro-nome" v-model="nome" required maxlength="120" autocomplete="name" placeholder="Seu nome completo" class="campo" />
@@ -46,7 +45,6 @@
 </template>
 
 <script setup>
-import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api, { mensagemErro } from '../services/api.js'

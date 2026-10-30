@@ -33,6 +33,7 @@ build/
 .vscode/
 
 # Credenciais locais
+.jwt-secret.local
 .env
 .env.*
 !.env.example

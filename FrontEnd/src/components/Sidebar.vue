@@ -38,14 +38,13 @@
     <!-- Voltar ao site público -->
     <div class="overflow-hidden border-t border-slate-200 p-2 dark:border-slate-800">
       <button type="button" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" @click="sair">
-        <span aria-hidden="true">↩</span><span v-show="aberta">{{ modoDemonstracao ? 'Voltar ao site' : 'Sair' }}</span>
+        <span aria-hidden="true">↩</span><span v-show="aberta">Sair</span>
       </button>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { ref, computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
@@ -61,7 +60,6 @@ defineEmits(['navegar'])
 const auth = useAuthStore()
 const router = useRouter()
 function sair() {
-  if (modoDemonstracao) { router.replace('/'); return }
   auth.logout()
   router.replace('/login')
 }
@@ -71,5 +69,5 @@ const itens = ref([
   { rotulo: 'Relatórios', to: '/app/relatorios', icone: '📋' },
   { rotulo: 'Gráficos', to: '/app/graficos', icone: '📈' }
 ])
-const itensVisiveis = computed(() => itens.value.filter(item => !item.admin || (!modoDemonstracao && auth.isAdmin)))
+const itensVisiveis = computed(() => itens.value.filter(item => !item.admin || auth.isAdmin))
 </script>

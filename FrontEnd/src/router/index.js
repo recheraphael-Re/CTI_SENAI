@@ -1,4 +1,3 @@
-import { modoDemonstracao } from '../utils/modoAcesso.js'
 import { criarProtecao } from './protecao.js'
 import { useAuthStore } from '../stores/auth.js'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -54,13 +53,6 @@ const router = createRouter({
   scrollBehavior: (to) => (to.hash ? { el: to.hash, behavior: 'smooth' } : { top: 0 })
 })
 
-router.beforeEach(to => {
-  if (modoDemonstracao) {
-    // A demonstração libera apenas as telas locais, sem conceder perfil ADMIN.
-    if (to.meta.admin) return { name: 'upload' }
-    return
-  }
-  return criarProtecao(useAuthStore())(to)
-})
+router.beforeEach(to => criarProtecao(useAuthStore())(to))
 
 export default router
