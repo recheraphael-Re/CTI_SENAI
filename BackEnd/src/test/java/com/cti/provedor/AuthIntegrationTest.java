@@ -32,6 +32,44 @@ class AuthIntegrationTest {
         Usuario u = new Usuario(); u.setNome("Teste"); u.setEmail(email); u.setSenhaHash(encoder.encode("senha123"));
         u.setPerfil(perfil); u.setStatus(StatusUsuario.ATIVO); return repository.saveAndFlush(u);
     }
+    @Test void filtraUsuariosEPadronizaErros() throws Exception {
+        Usuario admin = user("filtro@example.com", PerfilUsuario.ADMIN);
+        Usuario bloqueado = user("bloqueado@example.com", PerfilUsuario.USER);
+        bloqueado.setStatus(StatusUsuario.BLOQUEADO); repository.saveAndFlush(bloqueado);
+        String token = jwt.gerar(admin);
+        var filtrada = request("GET", "/api/admin/usuarios?status=BLOQUEADO", null, token);
+        assertEquals(200, filtrada.statusCode());
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var lista = json.readTree(filtrada.body());
+        assertEquals(1, lista.size());
+        assertEquals("bloqueado@example.com", lista.get(0).get("email").asText());
+        assertEquals(400, request("GET", "/api/admin/usuarios?status=INEXISTENTE", null, token).statusCode());
+        assertEquals(405, request("PUT", "/api/auth/login", "{}", token).statusCode());
+        assertEquals(404, request("GET", "/api/rota-inexistente", null, token).statusCode());
+        var invalido = request("POST", "/api/auth/register", "{\"nome\":\"\",\"email\":\"errado\",\"senha\":\"x\"}", null);
+        assertEquals(400, invalido.statusCode());
+        var campos = json.readTree(invalido.body()).get("campos");
+        assertTrue(campos.has("nome")); assertTrue(campos.has("email")); assertTrue(campos.has("senha"));
+    }
+    @Test void cadastroAcademicoEExpiracaoDoLogin() throws Exception {
+        var resposta = request("POST", "/auth/register", """
+            {"nome":"Aluno","email":"aluno@example.com","senha":"senha123",
+             "matricula":" RA123 ","turma":" CTI01 "}
+            """, null);
+        assertEquals(201, resposta.statusCode());
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var cadastro = json.readTree(resposta.body());
+        assertEquals("RA123", cadastro.get("matricula").asText());
+        assertEquals("CTI01", cadastro.get("turma").asText());
+        assertFalse(cadastro.get("criadoEm").isNull());
+        var aluno = repository.findByEmailIgnoreCase("aluno@example.com").orElseThrow();
+        aluno.setStatus(StatusUsuario.ATIVO); repository.saveAndFlush(aluno);
+        var login = request("POST", "/auth/login", "{\"email\":\"aluno@example.com\",\"senha\":\"senha123\"}", null);
+        assertEquals(200, login.statusCode());
+        var dados = json.readTree(login.body());
+        assertEquals(jwt.getExpiraEmSegundos(), dados.get("expiraEmSegundos").asLong());
+        assertEquals("RA123", dados.get("usuario").get("matricula").asText());
+    }
     @Test void cadastroLoginEAprovacao() throws Exception {
         String cadastro = "{\"nome\":\"Ana\",\"email\":\"Ana@example.com\",\"senha\":\"senha123\",\"perfil\":\"ADMIN\",\"status\":\"ATIVO\"}";
         var res = request("POST", "/auth/register", cadastro, null);

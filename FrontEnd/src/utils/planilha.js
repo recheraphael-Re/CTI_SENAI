@@ -32,16 +32,18 @@ const APELIDOS_SEGMENTO = { ind: 'Indústria', tech: 'Tecnologia' }
 // Para aceitar uma variação nova, basta acrescentá-la na lista certa.
 const COLUNAS = {
   id: ['codigo', 'codigocliente', 'codigodocliente', 'codcliente', 'id', 'idcliente'],
-  empresa: ['empresa', 'cliente', 'nome', 'nomeempresa', 'nomedocliente', 'razaosocial', 'nomefantasia'],
+  empresa: ['empresa', 'cliente', 'nome', 'nomeempresa', 'nomecliente', 'nomedocliente', 'razaosocial', 'nomefantasia'],
   consultor: ['consultor', 'vendedor', 'responsavel', 'executivo'],
   email: ['email', 'emailcliente', 'correioeletronico'],
   segmento: ['segmento', 'setor', 'ramo', 'areadeatuacao', 'atividade'],
-  nivel: ['nivel', 'classificacao', 'classe', 'categoria', 'porte'],
+  nivel: ['nivelcliente', 'nivel', 'classificacao', 'classe', 'categoria', 'porte'],
   faturamento: ['faturamento', 'faturamentomensal', 'faturamentoanual', 'faixadefaturamento', 'faixa', 'receita'],
-  servico: ['servico', 'servicos', 'servicocontratado', 'produto', 'plano'],
+  servico: ['servicoscontratados', 'servico', 'servicos', 'servicocontratado', 'produto', 'plano'],
   valorServico: ['valorservico', 'valordoservico', 'mensalidade', 'valor'],
   status: ['status', 'statuscontrato', 'situacao'],
-  dataInicio: ['datainicio', 'datadeinicio', 'inicio', 'data']
+  cidade: ['cidade'],
+  uf: ['uf'],
+  dataInicio: ['datacontratacao', 'datainicio', 'datadeinicio', 'inicio', 'data']
 }
 
 // Descobre a qual campo uma célula de cabeçalho corresponde (ou null).
@@ -269,6 +271,8 @@ export async function lerPlanilha(arquivo) {
       servico: pegar('servico'),
       valorServico: pegar('valorServico'),
       status: pegar('status'),
+      cidade: pegar('cidade'),
+      uf: pegar('uf'),
       dataInicio: pegar('dataInicio')
     }
 
@@ -294,6 +298,8 @@ export async function lerPlanilha(arquivo) {
       valorServico: interpretarNumero(bruto.valorServico),
       status: padronizar(bruto.status, listas.status) || 'NÃO INFORMADO',
       statusOriginal: String(bruto.status).trim(),
+      cidade: limparTexto(bruto.cidade),
+      uf: limparTexto(bruto.uf),
       dataInicio: interpretarData(bruto.dataInicio)
     }
 

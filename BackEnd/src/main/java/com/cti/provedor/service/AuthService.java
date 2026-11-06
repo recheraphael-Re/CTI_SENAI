@@ -38,6 +38,8 @@ public class AuthService {
         }
         Usuario usuario = new Usuario();
         usuario.setNome(dados.nome().trim());
+        usuario.setMatricula(dados.matricula() == null ? null : dados.matricula().trim());
+        usuario.setTurma(dados.turma() == null ? null : dados.turma().trim());
         usuario.setEmail(email);
         usuario.setSenhaHash(encoder.encode(dados.senha())); // Armazena apenas o hash.
         usuario.setPerfil(PerfilUsuario.USER); // Cadastro público nunca define ADMIN.
@@ -55,6 +57,6 @@ public class AuthService {
             String code = usuario.getStatus() == StatusUsuario.PENDENTE ? "USUARIO_PENDENTE" : "USUARIO_BLOQUEADO";
             throw new ApiException(HttpStatus.FORBIDDEN, code, "Conta pendente de aprovacao ou bloqueada.");
         }
-        return new LoginResponse(jwt.gerar(usuario), "Bearer", UsuarioDto.de(usuario));
+        return new LoginResponse(jwt.gerar(usuario), "Bearer", jwt.getExpiraEmSegundos(), UsuarioDto.de(usuario));
     }
 }

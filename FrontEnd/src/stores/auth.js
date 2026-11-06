@@ -23,7 +23,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!dado?.id || !dado.nome || !['USER', 'ADMIN'].includes(dado.perfil) || dado.status !== 'ATIVO') {
       throw new Error('A API não retornou um usuário ativo válido.')
     }
-    usuario.value = { id: dado.id, nome: dado.nome, email: dado.email, perfil: dado.perfil, status: dado.status }
+    usuario.value = { id: dado.id, nome: dado.nome, email: dado.email, perfil: dado.perfil, status: dado.status,
+      matricula: dado.matricula ?? null, turma: dado.turma ?? null, criadoEm: dado.criadoEm ?? null }
   }
   async function login(email, senha) {
     logout()

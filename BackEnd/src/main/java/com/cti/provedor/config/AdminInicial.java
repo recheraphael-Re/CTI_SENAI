@@ -17,7 +17,7 @@ public class AdminInicial {
                 throw new IllegalArgumentException("Configure ADMIN_EMAIL e ADMIN_PASSWORD (8 caracteres a 72 bytes)");
             String normalizado = email.trim().toLowerCase(Locale.ROOT);
             if (repository.existsByEmailIgnoreCase(normalizado))
-                throw new IllegalStateException("ADMIN_EMAIL ja cadastrado; remova as vari?veis de provisionamento");
+                return; // Não altera perfil, status ou senha de uma conta existente.
             Usuario admin = new Usuario(); admin.setNome("Administrador"); admin.setEmail(normalizado);
             admin.setSenhaHash(encoder.encode(senha)); admin.setPerfil(PerfilUsuario.ADMIN); admin.setStatus(StatusUsuario.ATIVO);
             repository.saveAndFlush(admin);

@@ -11,7 +11,17 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository repository;
     public UsuarioService(UsuarioRepository repository) { this.repository = repository; }
-    public List<UsuarioDto> listar() { return repository.findAll().stream().map(UsuarioDto::de).toList(); }
+    public List<UsuarioDto> listar(com.cti.provedor.model.StatusUsuario status) {
+        return repository.findAll().stream().filter(u -> status == null || u.getStatus() == status)
+            .sorted(java.util.Comparator.comparing(Usuario::getCriadoEm,
+                java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
+                .thenComparing(Usuario::getId, java.util.Comparator.reverseOrder()))
+            .map(UsuarioDto::de).toList();
+    }
+    public UsuarioDto atual(String email) {
+        return UsuarioDto.de(repository.findByEmailIgnoreCase(email)
+            .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "NAO_AUTENTICADO", "Usuário não encontrado")));
+    }
     @Transactional
     public UsuarioDto alterar(Long id, StatusUsuario status, PerfilUsuario perfil, String emailAdmin) {
         // Serializa alteracoes de status para proteger o ultimo administrador ativo.

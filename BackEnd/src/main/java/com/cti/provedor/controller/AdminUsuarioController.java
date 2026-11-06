@@ -10,7 +10,7 @@ import java.util.List;
 public class AdminUsuarioController {
     private final UsuarioService service;
     public AdminUsuarioController(UsuarioService service) { this.service = service; }
-    @GetMapping public List<UsuarioDto> listar() { return service.listar(); }
+    @GetMapping public List<UsuarioDto> listar(@RequestParam(required = false) com.cti.provedor.model.StatusUsuario status) { return service.listar(status); }
     @PatchMapping("/{id}/status") public UsuarioDto alterar(@PathVariable Long id, @Valid @RequestBody StatusRequest dados, Principal principal) {
         return service.alterar(id, dados.status(), dados.perfil(), principal.getName());
     }

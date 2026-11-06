@@ -32,6 +32,10 @@ export function mensagemErro(erro) {
   const codigo = erro.response?.data?.code
   if (codigo === 'USUARIO_PENDENTE') return 'Sua solicitação aguarda aprovação do administrador.'
   if (codigo === 'USUARIO_BLOQUEADO') return 'Seu acesso está bloqueado. Procure o administrador.'
+  const campos = erro.response?.data?.campos
+  if (campos && typeof campos === 'object' && Object.keys(campos).length) {
+    return Object.entries(campos).map(([campo, mensagem]) => `${campo}: ${mensagem}`).join('; ')
+  }
   return erro.response?.data?.message || erro.message || 'Não foi possível concluir a operação.'
 }
 export default api

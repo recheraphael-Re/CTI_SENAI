@@ -1,3 +1,4 @@
+import api, { mensagemErro } from '../services/api.js'
 import { ref, shallowRef, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { lerPlanilha } from '../utils/planilha.js'
@@ -47,6 +48,9 @@ export const useUploadStore = defineStore('upload', () => {
   const periodoFaturamento = ref(sessao?.periodoFaturamento ?? 'não informado')
   const rotuloFaturamento = computed(() => periodoFaturamento.value === 'não informado' ? 'Faturamento (período não informado)' : `Faturamento ${periodoFaturamento.value}`)
   const carregando = ref(false)
+  const validandoBackend = ref(false)
+  const clientesPreparados = ref([])
+  const resultadoBackend = ref('')
   let operacao = 0
   const erro = ref('')
 
@@ -99,6 +103,46 @@ export const useUploadStore = defineStore('upload', () => {
       .map(([tipo, quantidade]) => ({ tipo, quantidade }))
   })
 
+  async function validarNoBackend() {
+    if (validandoBackend.value || carregando.value) return false
+    erro.value = ''
+    resultadoBackend.value = ''
+    clientesPreparados.value = []
+    if (periodoFaturamento.value !== 'anual') {
+      erro.value = 'Para esta validação, use a coluna faturamento_anual. O valor mensal não será convertido automaticamente.'
+      return false
+    }
+    const lista = clientes.value.filter(c => c.valida)
+    if (!lista.length) {
+      erro.value = 'Importe pelo menos um cliente válido antes de enviar.'
+      return false
+    }
+    const atual = operacao
+    validandoBackend.value = true
+    try {
+      const { data } = await api.post('/api/uploads/validadas', {
+        arquivoNome: nomeArquivo.value,
+        descartadas: clientes.value.length - lista.length,
+        linhas: lista.map(c => ({
+        numeroLinha: c.linha,
+        codigoCliente: c.id, nomeCliente: c.empresa, consultor: c.consultor,
+        segmento: c.segmento, nivelCliente: c.nivel, faturamentoAnual: c.faturamento,
+        servicosContratados: c.servico,
+        dataContratacao: c.dataInicio ? c.dataInicio.toISOString().slice(0, 10) : null,
+        cidade: c.cidade || '', uf: c.uf || ''
+      })) })
+      if (atual !== operacao) return false
+      clientesPreparados.value = data.linhas
+      resultadoBackend.value = `${data.totalValidadas} clientes validados e preparados pelo backend. ${data.descartadas} linhas descartadas no navegador.`
+      return true
+    } catch (e) {
+      if (atual === operacao) erro.value = mensagemErro(e)
+      return false
+    } finally {
+      validandoBackend.value = false
+    }
+  }
+
   function selecionarArquivo(novo) {
     if (carregando.value) return false
     erro.value = ''
@@ -128,6 +172,8 @@ export const useUploadStore = defineStore('upload', () => {
     erro.value = ''
     selecionarArquivo(arquivoSelecionado)
     if (!validarArquivo()) return false
+    clientesPreparados.value = []
+    resultadoBackend.value = ''
     const atual = ++operacao
     carregando.value = true
     erro.value = ''
@@ -162,6 +208,8 @@ export const useUploadStore = defineStore('upload', () => {
 
   function limpar() {
     operacao++
+    clientesPreparados.value = []
+    resultadoBackend.value = ''
     arquivo.value = null
     dadosOriginais.value = []
     carregando.value = false
@@ -191,6 +239,7 @@ export const useUploadStore = defineStore('upload', () => {
   const clientesNivelA = computed(() => linhasValidas.value.filter(c => c.nivel === 'A').length)
 
   return {
+    validarNoBackend, validandoBackend, clientesPreparados, resultadoBackend,
     arquivo,
     dadosOriginais,
     dadosTratados,

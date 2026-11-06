@@ -15,11 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping({"", "/api"})
 public class AuthController {
     private final AuthService service;
-    private final UsuarioRepository repository;
+    private final com.cti.provedor.service.UsuarioService usuarios;
 
-    public AuthController(AuthService service, UsuarioRepository repository) {
+    public AuthController(AuthService service, com.cti.provedor.service.UsuarioService usuarios) {
         this.service = service;
-        this.repository = repository;
+        this.usuarios = usuarios;
     }
 
     @PostMapping({"/auth/cadastro", "/auth/register"})
@@ -35,9 +35,7 @@ public class AuthController {
 
     @GetMapping("/auth/me")
     public UsuarioDto me(Principal principal) {
-        Usuario usuario = repository.findByEmailIgnoreCase(principal.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        return UsuarioDto.de(usuario);
+        return usuarios.atual(principal.getName());
     }
 
     @GetMapping("/publico")

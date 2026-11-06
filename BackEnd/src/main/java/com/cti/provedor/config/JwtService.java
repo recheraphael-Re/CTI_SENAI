@@ -24,6 +24,8 @@ public class JwtService {
         this.expiracaoMinutos = expiracaoMinutos;
     }
 
+    public long getExpiraEmSegundos() { return expiracaoMinutos * 60; }
+
     public String gerar(Usuario usuario) {
         Instant agora = Instant.now();
         return Jwts.builder()

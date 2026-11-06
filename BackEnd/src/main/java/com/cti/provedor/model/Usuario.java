@@ -15,6 +15,20 @@ public class Usuario {
     @Column(nullable = false, length = 254)
     private String email;
 
+    @Column(length = 30)
+    private String matricula;
+    @Column(length = 60)
+    private String turma;
+    private java.time.Instant criadoEm;
+
+    @PrePersist
+    void registrarCriacao() { if (criadoEm == null) criadoEm = java.time.Instant.now(); }
+    public String getMatricula() { return matricula; }
+    public void setMatricula(String matricula) { this.matricula = matricula; }
+    public String getTurma() { return turma; }
+    public void setTurma(String turma) { this.turma = turma; }
+    public java.time.Instant getCriadoEm() { return criadoEm; }
+
     @Column(nullable = false)
     private String senhaHash; // Nunca armazenar a senha original.
 
@@ -41,4 +55,6 @@ public class Usuario {
     public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
     public PerfilUsuario getPerfil() { return perfil; }
     public void setPerfil(PerfilUsuario perfil) { this.perfil = perfil; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isAdmin() { return perfil == PerfilUsuario.ADMIN; }
 }

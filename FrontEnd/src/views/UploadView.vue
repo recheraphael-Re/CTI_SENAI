@@ -60,6 +60,16 @@
       </button>
     </div>
 
+    <div v-if="temDados" class="mt-6">
+      <button :disabled="carregando || validandoBackend || !totalClientes"
+        class="rounded-lg bg-slate-900 px-6 py-3 text-white disabled:opacity-40 dark:bg-slate-100 dark:text-slate-900"
+        @click="store.validarNoBackend()">
+        {{ validandoBackend ? 'Validando no servidor...' : 'Validar clientes no backend' }}
+      </button>
+      <p class="mt-2 text-sm">Envia somente as linhas válidas. Exige faturamento anual e data de contratação; não grava no banco.</p>
+      <p v-if="resultadoBackend" role="status" class="mt-2 text-emerald-700">{{ resultadoBackend }}</p>
+    </div>
+
     <!-- RESUMO DA IMPORTAÇÃO — o que o tratamento encontrou na planilha -->
     <div
       v-if="temDados"
@@ -167,7 +177,7 @@ import { useUploadStore } from '../stores/uploadStore.js'
 import CartaoIndicador from '../components/CartaoIndicador.vue'
 
 const store = useUploadStore()
-const { arquivo, nomeArquivo, carregando, erro, temDados, resumo, errosPorTipo, dadosTratados, totalClientes, clientesNivelA } = storeToRefs(store)
+const { validandoBackend, resultadoBackend, arquivo, nomeArquivo, carregando, erro, temDados, resumo, errosPorTipo, dadosTratados, totalClientes, clientesNivelA } = storeToRefs(store)
 const previa = computed(() => dadosTratados.value.slice(0, 10))
 
 function limpar() {

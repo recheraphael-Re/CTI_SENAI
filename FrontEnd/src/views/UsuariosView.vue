@@ -9,11 +9,12 @@ const carregando = ref(false)
 const alterando = ref(null)
 const erro = ref('')
 const mensagem = ref('')
+const filtroStatus = ref('')
 async function carregar() {
   carregando.value = true
   erro.value = ''
   try {
-    const { data } = await api.get('/admin/usuarios')
+    const { data } = await api.get('/admin/usuarios', { params: filtroStatus.value ? { status: filtroStatus.value } : {} })
     if (!Array.isArray(data)) throw new Error('A API retornou uma lista de usuários inválida.')
     usuarios.value = data
     perfis.value = Object.fromEntries(data.map(u => [u.id, u.perfil]))
@@ -38,6 +39,14 @@ onMounted(carregar)
   <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h1 class="text-xl font-bold">Solicitações e usuários</h1>
+      <label>Status
+        <select v-model="filtroStatus" :disabled="carregando || alterando !== null" @change="carregar" class="rounded border p-2 dark:bg-slate-800">
+          <option value="">Todos</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="ATIVO">Ativo</option>
+          <option value="BLOQUEADO">Bloqueado</option>
+        </select>
+      </label>
       <button class="rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50" :disabled="carregando || alterando !== null" @click="carregar">Atualizar lista</button>
     </div>
     <p v-if="erro" role="alert" class="mb-4 text-red-600 dark:text-red-400">{{ erro }}</p>
