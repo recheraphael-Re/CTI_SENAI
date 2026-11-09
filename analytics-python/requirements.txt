@@ -1,0 +1,8 @@
+pandas>=2.2              # tabelas de dados (DataFrame): recebe as linhas da planilha e faz a limpeza (limpeza.py)
+numpy>=1.26              # cálculos numéricos rápidos; o pandas e o scipy dependem dele
+scipy>=1.13              # estatística: moda, quartis e outros indicadores (analise.py)
+SQLAlchemy>=2.0          # conexão com o banco: abre a "engine" e grava as tabelas (banco.py)
+psycopg[binary]>=3.2     # driver do PostgreSQL: é quem de fato conversa com o Neon por baixo do SQLAlchemy
+python-dotenv>=1.0       # lê o arquivo .env (senha do banco, ETL_API_KEY) (config.py)
+fastapi>=0.115           # cria a API: as rotas /saude, /etl e /testar (api.py)
+uvicorn>=0.30            # servidor que mantém a API ligada na porta 8000

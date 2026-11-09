@@ -13,8 +13,15 @@ public class ClienteValidacaoService {
         for (ClienteDTO cliente : clientes) {
             if (cliente == null) throw new IllegalArgumentException("A lista não pode conter clientes nulos.");
             String codigo = cliente.codigoCliente().trim();
-            if (!codigos.add(codigo)) throw new IllegalArgumentException("Código repetido na planilha: " + codigo);
+            if (!codigos.add(codigo.toUpperCase(Locale.ROOT))) throw new IllegalArgumentException("Código repetido na planilha: " + codigo);
             if (!Double.isFinite(cliente.faturamentoAnual())) throw new IllegalArgumentException("O faturamento deve ser um número finito.");
+            if (cliente.dataContratacao().getYear() < 1990 || cliente.dataContratacao().getYear() > 2100)
+                throw new IllegalArgumentException("A data deve estar entre 1990 e 2100.");
+            if (Arrays.stream(cliente.servicosContratados().split(";", -1)).anyMatch(s -> s.isBlank() || s.trim().length() > 120))
+                throw new IllegalArgumentException("Cada serviço deve ter entre 1 e 120 caracteres; separe-os com ponto e vírgula.");
+            if (!Set.of("Indústria", "Comércio", "Serviços", "Saúde", "Educação", "Tecnologia", "Varejo",
+                    "Logística", "Construção", "Financeiro", "Agronegócio").contains(segmento(cliente.segmento())))
+                throw new IllegalArgumentException("Segmento não reconhecido: " + cliente.segmento());
         }
         return clientes.stream().map(this::padronizar).toList();
     }
@@ -27,9 +34,17 @@ public class ClienteValidacaoService {
         String chave = Normalizer.normalize(limpar(texto), Normalizer.Form.NFD)
             .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
         return switch (chave) {
-            case "ind.", "industria" -> "Indústria";
-            case "comercio" -> "Comércio";
-            case "servicos" -> "Serviços";
+            case "ind", "ind.", "industria", "industrial" -> "Indústria";
+            case "com", "com.", "comercio" -> "Comércio";
+            case "serv", "serv.", "servico", "servicos" -> "Serviços";
+            case "saude" -> "Saúde";
+            case "edu", "educacao" -> "Educação";
+            case "tec", "tech", "ti", "tecnologia" -> "Tecnologia";
+            case "varejo" -> "Varejo";
+            case "logistica" -> "Logística";
+            case "construcao" -> "Construção";
+            case "financeiro" -> "Financeiro";
+            case "agronegocio" -> "Agronegócio";
             default -> limpar(texto);
         };
     }

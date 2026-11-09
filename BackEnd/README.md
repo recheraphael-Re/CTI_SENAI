@@ -86,6 +86,6 @@ A classe inicial e `CtiProvedorApplication`. Os testes acompanham o mesmo pacote
 
 A reorganizacao nao renomeia tabelas nem altera registros do Azure. Mantivemos `usuarios` e `ATIVO`, utilizados pelo frontend e pelo banco existente. O PDF usa `usuario` e `APROVADO`; adotar esses nomes requer uma migracao separada.
 
-O material tambem apresenta um novo fluxo de upload com UploadController, UploadService, ClienteValidacaoService, PythonEtlService e utilitarios. Esse fluxo ainda nao existe neste projeto. Nenhuma classe vazia foi criada para simular a integracao: upload, graficos e relatorios continuam sendo processados no navegador. A integracao com Python exige implementar e testar seu contrato antes de substituir os CRUDs atuais.
+O fluxo de upload foi integrado: UploadController revalida os dados, PythonEtlService envia ao FastAPI, e o Python limpa, calcula e grava o lote no esquema `cti_analytics`. DashboardController consulta os lotes, clientes e estatisticas. Os CRUDs JPA existentes permanecem independentes. Configure a chave ETL e execute a migracao manual antes de importar. Instrucoes completas: [INTEGRACAO_CTI.md](../INTEGRACAO_CTI.md).
 
 Detalhes da limpeza e dos arquivos preservados: [docs/ORGANIZACAO_PROJETO.md](docs/ORGANIZACAO_PROJETO.md).

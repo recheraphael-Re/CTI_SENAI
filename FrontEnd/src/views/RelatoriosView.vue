@@ -1,6 +1,12 @@
 <template>
+  <div class="mb-6 flex flex-wrap gap-3">
+    <button class="rounded border px-4 py-2" :aria-pressed="!previaLocal" @click="previaLocal = false">Relatório salvo no banco</button>
+    <button class="rounded border px-4 py-2" :aria-pressed="previaLocal" @click="previaLocal = true">Prévia e erros da planilha local</button>
+  </div>
+  <AnalyticsPanel v-if="!previaLocal" relatorio />
   <!-- RELATÓRIOS — consulta da base de clientes tratada -->
-  <section>
+  <section v-else>
+    <p class="mb-4 rounded border p-3 text-sm">As linhas com erro permanecem somente nesta prévia local; o banco contém apenas os clientes aprovados.</p>
     <section v-if="store.temDados" class="mb-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
       <h2 class="text-lg font-bold">Informações do processamento</h2>
       <dl class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -136,6 +142,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import AnalyticsPanel from '../components/AnalyticsPanel.vue'
+const previaLocal = ref(false)
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUploadStore } from '../stores/uploadStore.js'

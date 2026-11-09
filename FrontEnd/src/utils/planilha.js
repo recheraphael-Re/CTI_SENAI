@@ -16,7 +16,7 @@ const LISTAS_PADRAO = {
   niveis: ['A', 'B', 'C'],
   status: ['ATIVO', 'PENDENTE', 'CANCELADO'],
   segmentos: [
-    'Varejo', 'Indústria', 'Saúde', 'Tecnologia', 'Serviços',
+    'Varejo', 'Comércio', 'Indústria', 'Saúde', 'Tecnologia', 'Serviços',
     'Logística', 'Educação', 'Construção', 'Financeiro', 'Agronegócio'
   ],
   servicos: [
@@ -26,7 +26,7 @@ const LISTAS_PADRAO = {
 }
 
 // Abreviações que tirar acento e caixa não resolve sozinho
-const APELIDOS_SEGMENTO = { ind: 'Indústria', tech: 'Tecnologia' }
+const APELIDOS_SEGMENTO = { ind: 'Indústria', industrial: 'Indústria', tech: 'Tecnologia', tec: 'Tecnologia', ti: 'Tecnologia', com: 'Comércio', serv: 'Serviços', servico: 'Serviços', edu: 'Educação' }
 
 // Nomes que cada coluna pode ter na planilha, já sem acento e sem espaço.
 // Para aceitar uma variação nova, basta acrescentá-la na lista certa.
@@ -140,7 +140,7 @@ export function interpretarData(valor) {
 
 // As cinco regras do gabarito. `vistos` guarda os códigos já lidos, para que
 // a DUPLICIDADE caia na segunda ocorrência, e não na primeira.
-function validar(registro, bruto, listas, vistos, temEmail) {
+function validar(registro, bruto, listas, vistos, temEmail, anual) {
   const erros = []
   const acusar = (tipo, campo, descricao) => erros.push({ tipo, campo, descricao })
 
@@ -155,10 +155,11 @@ function validar(registro, bruto, listas, vistos, temEmail) {
   }
 
   if (registro.id) {
-    if (vistos.has(registro.id)) {
+    const codigo = anual ? registro.id.toUpperCase() : registro.id
+    if (vistos.has(codigo)) {
       acusar('DUPLICIDADE', 'codigo_cliente', `Código duplicado: ${registro.id}.`)
     } else {
-      vistos.set(registro.id, registro.linha)
+      vistos.set(codigo, registro.linha)
     }
   }
 
@@ -201,6 +202,24 @@ function validar(registro, bruto, listas, vistos, temEmail) {
     acusar('DATA_INVALIDA', 'data_inicio', `Data inválida: ${bruto.dataInicio}.`)
   }
 
+  if (anual) {
+    if (registro.id && (!/^[A-Za-z0-9_-]+$/.test(registro.id) || registro.id.length > 60))
+      acusar('CODIGO_INVALIDO', 'codigo_cliente', 'Código: até 60 letras, números, hífens ou sublinhados.')
+    if (!LISTAS_PADRAO.segmentos.includes(registro.segmento))
+      acusar('DOMINIO_INVALIDO', 'segmento', `Segmento não reconhecido: ${registro.segmento}.`)
+    if (!registro.dataInicio && !String(bruto.dataInicio ?? '').trim())
+      acusar('CAMPO_OBRIGATORIO', 'data_contratacao', 'Data de contratação obrigatória na importação anual.')
+    if (registro.dataInicio && (registro.dataInicio.getUTCFullYear() < 1990 || registro.dataInicio.getUTCFullYear() > 2100))
+      acusar('DATA_INVALIDA', 'data_contratacao', 'Use uma data entre 1990 e 2100.')
+    for (const [campo, limite] of [['empresa', 255], ['consultor', 120], ['cidade', 120]]) {
+      if (registro[campo].length > limite) acusar('TEXTO_LONGO', campo, `Máximo de ${limite} caracteres.`)
+    }
+    if (registro.uf && !/^[A-Za-z]{2}$/.test(registro.uf)) acusar('UF_INVALIDA', 'uf', 'A UF deve ter duas letras.')
+    if (registro.servico.length > 2000 || registro.servico.split(';').some(s => !s.trim() || s.trim().length > 120))
+      acusar('SERVICO_INVALIDO', 'servicos_contratados', 'Separe serviços com ponto e vírgula; cada nome deve ter até 120 caracteres.')
+    if (registro.faturamento > 99999999999999.99) acusar('NUMERO_INVALIDO', 'faturamento_anual', 'Faturamento acima do limite do banco.')
+  }
+
   return erros
 }
 
@@ -212,14 +231,18 @@ export async function lerPlanilha(arquivo) {
   const XLSX = await import('xlsx')
 
   const buffer = await arquivo.arrayBuffer()
-  const pasta = XLSX.read(buffer, { type: 'array' })
+  const bytes = new Uint8Array(buffer)
+  const binario = (bytes[0] === 0x50 && bytes[1] === 0x4b) || (bytes[0] === 0xd0 && bytes[1] === 0xcf)
+  // CSV e planilhas XML em texto usam UTF-8; XLS/XLSX preservam o leitor binário.
+  const pasta = XLSX.read(binario ? buffer : new TextDecoder('utf-8').decode(buffer), { type: binario ? 'array' : 'string' })
 
   if (pasta.SheetNames.length === 0) throw new Error('A planilha não tem nenhuma aba.')
 
   // A base oficial manda importar só a aba de dados; em outras planilhas,
   // vale a primeira aba mesmo.
   const nomeAba =
-    pasta.SheetNames.find((n) => normalizar(n) === normalizar(ABA_DADOS)) ?? pasta.SheetNames[0]
+    pasta.SheetNames.find((n) => normalizar(n) === normalizar(ABA_DADOS)) ??
+    pasta.SheetNames.find((n) => normalizar(n) === 'uploadclientes') ?? pasta.SheetNames[0]
 
   const listas = lerListas(XLSX, pasta)
 
@@ -303,7 +326,7 @@ export async function lerPlanilha(arquivo) {
       dataInicio: interpretarData(bruto.dataInicio)
     }
 
-    registro.erros = validar(registro, bruto, listas, vistos, mapa.email !== undefined)
+    registro.erros = validar(registro, bruto, listas, vistos, mapa.email !== undefined, periodoFaturamento === 'anual')
     registro.valida = registro.erros.length === 0
     registro.ativo = registro.status === 'ATIVO'
 

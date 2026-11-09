@@ -1,0 +1,5 @@
+codigo_cliente,nome_cliente,consultor,segmento,nivel_cliente,faturamento_anual,servicos_contratados,data_contratacao,cidade,uf
+CTI001,Empresa Alfa,Ana Souza,Indústria,A,100000,Internet Dedicada; Firewall,2025-01-15,Campinas,SP
+CTI002,Empresa Beta,Bruno Lima,Comércio,B,200000,Cloud Backup,2025-02-10,São Paulo,SP
+CTI003,Empresa Gama,Ana Souza,Tecnologia,C,300000,Internet Dedicada,2025-03-20,Sorocaba,SP
+CTI004,Linha com erro,Bruno Lima,Saúde,A,-100,Internet Dedicada,2025-04-01,Campinas,SP

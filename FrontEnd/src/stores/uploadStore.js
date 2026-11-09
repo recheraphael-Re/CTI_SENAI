@@ -3,6 +3,7 @@ import { ref, shallowRef, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { lerPlanilha } from '../utils/planilha.js'
 import { formatarMoeda } from '../utils/formato.js'
+import { useDashboardStore } from './dashboard.js'
 
 const CHAVE = 'cti-insights-clientes-v2'
 
@@ -51,6 +52,7 @@ export const useUploadStore = defineStore('upload', () => {
   const validandoBackend = ref(false)
   const clientesPreparados = ref([])
   const resultadoBackend = ref('')
+  const loteSalvo = ref(null)
   let operacao = 0
   const erro = ref('')
 
@@ -104,7 +106,7 @@ export const useUploadStore = defineStore('upload', () => {
   })
 
   async function validarNoBackend() {
-    if (validandoBackend.value || carregando.value) return false
+    if (validandoBackend.value || carregando.value || loteSalvo.value) return false
     erro.value = ''
     resultadoBackend.value = ''
     clientesPreparados.value = []
@@ -115,6 +117,11 @@ export const useUploadStore = defineStore('upload', () => {
     const lista = clientes.value.filter(c => c.valida)
     if (!lista.length) {
       erro.value = 'Importe pelo menos um cliente válido antes de enviar.'
+      return false
+    }
+    const semData = lista.find(c => !c.dataInicio || c.dataInicio.getUTCFullYear() < 1990 || c.dataInicio.getUTCFullYear() > 2100)
+    if (semData) {
+      erro.value = `Linha ${semData.linha}: informe data_contratacao entre 1990 e 2100 para salvar o lote.`
       return false
     }
     const atual = operacao
@@ -130,10 +137,15 @@ export const useUploadStore = defineStore('upload', () => {
         servicosContratados: c.servico,
         dataContratacao: c.dataInicio ? c.dataInicio.toISOString().slice(0, 10) : null,
         cidade: c.cidade || '', uf: c.uf || ''
-      })) })
+      })) }, { timeout: 110000 })
       if (atual !== operacao) return false
+      if (!Number.isSafeInteger(data.loteId) || data.loteId <= 0 || data.status !== 'PROCESSADO') {
+        throw new Error('O servidor não confirmou a gravação. Consulte o histórico antes de reenviar.')
+      }
+      loteSalvo.value = data.loteId
       clientesPreparados.value = data.linhas
-      resultadoBackend.value = `${data.totalValidadas} clientes validados e preparados pelo backend. ${data.descartadas} linhas descartadas no navegador.`
+      resultadoBackend.value = `Lote #${data.loteId} salvo: ${data.totalValidadas} clientes processados pelo Python. ${data.descartadas} linhas descartadas.`
+      useDashboardStore().limpar()
       return true
     } catch (e) {
       if (atual === operacao) erro.value = mensagemErro(e)
@@ -144,7 +156,7 @@ export const useUploadStore = defineStore('upload', () => {
   }
 
   function selecionarArquivo(novo) {
-    if (carregando.value) return false
+    if (carregando.value || validandoBackend.value) return false
     erro.value = ''
     arquivo.value = null
     if (!novo) return false
@@ -168,7 +180,7 @@ export const useUploadStore = defineStore('upload', () => {
 
   // O arquivo é capturado para que o nome corresponda aos dados processados.
   async function importarPlanilha(arquivoSelecionado) {
-    if (carregando.value) return false
+    if (carregando.value || validandoBackend.value) return false
     erro.value = ''
     selecionarArquivo(arquivoSelecionado)
     if (!validarArquivo()) return false
@@ -181,6 +193,7 @@ export const useUploadStore = defineStore('upload', () => {
     try {
       const lido = await lerPlanilha(arquivoSelecionado)
       if (atual !== operacao) return false
+      loteSalvo.value = null
       dataUpload.value = new Date().toISOString()
       periodoFaturamento.value = lido.periodoFaturamento
       totalColunas.value = lido.totalColunas
@@ -210,6 +223,7 @@ export const useUploadStore = defineStore('upload', () => {
     operacao++
     clientesPreparados.value = []
     resultadoBackend.value = ''
+    loteSalvo.value = null
     arquivo.value = null
     dadosOriginais.value = []
     carregando.value = false
@@ -239,6 +253,7 @@ export const useUploadStore = defineStore('upload', () => {
   const clientesNivelA = computed(() => linhasValidas.value.filter(c => c.nivel === 'A').length)
 
   return {
+    loteSalvo,
     validarNoBackend, validandoBackend, clientesPreparados, resultadoBackend,
     arquivo,
     dadosOriginais,

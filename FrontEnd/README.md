@@ -24,6 +24,12 @@ Se ela não existir no checkout, apenas esse teste é marcado como ignorado.
 
 ## Fluxo disponível
 
+O processamento integrado está descrito em [INTEGRACAO_CTI.md](../INTEGRACAO_CTI.md).
+Na tela de upload, **Ler e conferir planilha** cria uma prévia local; **Processar e salvar no banco**
+envia somente as linhas válidas ao Java e ao Python. Gráficos e relatórios abrem por padrão
+as importações persistidas no PostgreSQL, com seleção do lote. A prévia local e seus erros
+continuam disponíveis em uma aba separada.
+
 1. Em `/app/upload`, selecione ou arraste um XLSX, XLS ou CSV e processe.
 2. Confira quantidades de linhas válidas, linhas com erro e ocorrências.
 3. Em `/app/relatorios`, consulte as linhas, pesquise e filtre os erros.
@@ -74,12 +80,14 @@ receita da CTI. Valores monetários na interface são abreviados e arredondados.
 O gráfico temporal conta registros por mês de início, independentemente do status atual,
 e exclui registros sem data. Mostra somente meses observados; não prova evolução histórica
 completa nem previsão de contratações. A importação atual exige um código único por cliente
-em cada arquivo. Vários contratos por cliente ainda dependem da modelagem do backend.
+em cada arquivo. No fluxo anual persistido, separe serviços por ponto e vírgula;
+o Python cria um contrato por serviço distinto e cliente no lote.
 
 ## Persistência e demonstrações
 
-Tudo é processado no navegador. `sessionStorage` mantém o último envio ao atualizar a aba;
-isso não substitui banco de dados e pode falhar se a capacidade do navegador for excedida.
+A prévia é processada no navegador. `sessionStorage` mantém a prévia ao atualizar a aba;
+as importações confirmadas pelo servidor ficam no PostgreSQL e podem ser consultadas por lote.
+Para salvar, use faturamento anual e data de contratação entre 1990 e 2100; não há conversão automática do mensal.
 A chave da sessão foi versionada para que dados importados sob regras antigas não escapem
 das novas validações: reimporte a planilha após esta atualização.
 
@@ -88,12 +96,9 @@ O formulário de contato não envia nem armazena mensagens e informa essa limita
 
 ## Pendências do PI2
 
-- Java/Spring Boot: entidades Cliente, Consultor, Contrato, Servico, Insight e Telemetria;
-  CRUD, exceções customizadas, CORS, importação e integração com Python.
-- PostgreSQL/Neon: esquema relacional, persistência e histórico de importações.
-- Python/Pandas: tratamento, estatísticas por grupo, teste estatístico interpretado,
-  gráficos de dispersão, histograma e boxplot, além do relatório de insights.
-- Integração do Vue com a API; validação e autorização no servidor.
+- Aplicar `BackEnd/src/main/resources/db/analytics.sql` no PostgreSQL configurado e validar
+  o fluxo completo nesse ambiente. A migração não é executada automaticamente.
+- Gráficos adicionais de dispersão, histograma e boxplot, se exigidos pela rubrica da entrega.
 - Verificação visual em duas larguras de tela e evidências dos testes do fluxo completo.
 - Publicação e documentação da arquitetura, configuração e execução integrada.
 - Entrega E1: identificação, hipóteses testáveis, diagrama, protótipos, responsabilidades
@@ -104,6 +109,6 @@ Utilizar a base fictícia para demonstrações e manter credenciais fora do repo
 ## Aula 11 — autenticação e administração
 
 Contrato proposto, configuração e checklist: [CONTRATO_API.md](src/services/CONTRATO_API.md).
-As rotas `/app/*` exigem sessão e `/app/usuarios` exige ADMIN. Após login, o painel abre em `/app/graficos`. O backend deve implementar os cinco endpoints do contrato, incluindo `/auth/me` para restaurar a sessão após F5. Não há contas de demonstração ou backend incluído.
+As rotas `/app/*` exigem sessão e `/app/usuarios` exige ADMIN. Após login, o painel abre em `/app/graficos`. O backend em `BackEnd/` implementa autenticação e `/auth/me` para restaurar a sessão após F5. Não há contas de demonstração.
 
 O token permanece no sessionStorage da aba; logout remove a sessão e limpa a planilha importada. Senhas não são persistidas. O servidor deve aplicar autorização em todas as rotas protegidas.

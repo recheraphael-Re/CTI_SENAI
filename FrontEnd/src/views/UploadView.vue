@@ -22,7 +22,7 @@
 
       <label class="mt-4 inline-block cursor-pointer bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold">
         Selecionar arquivo
-        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" :disabled="carregando" @change="selecionar" />
+        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" :disabled="carregando || validandoBackend" @change="selecionar" />
       </label>
 
       <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
@@ -44,15 +44,16 @@
 
     <div class="mt-6 flex flex-wrap items-center gap-4">
       <button
-        :disabled="!arquivo || carregando"
+        :disabled="!arquivo || carregando || validandoBackend"
         class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-lg font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
         @click="processar"
       >
-        {{ carregando ? 'Lendo planilha...' : 'Enviar e processar' }}
+        {{ carregando ? 'Lendo planilha...' : 'Ler e conferir planilha' }}
       </button>
 
       <button
         v-if="temDados"
+        :disabled="validandoBackend"
         class="text-sm text-slate-600 underline hover:text-brand dark:text-slate-400 dark:hover:text-brand-light"
         @click="limpar"
       >
@@ -61,12 +62,12 @@
     </div>
 
     <div v-if="temDados" class="mt-6">
-      <button :disabled="carregando || validandoBackend || !totalClientes"
+      <button :disabled="carregando || validandoBackend || !totalClientes || store.loteSalvo"
         class="rounded-lg bg-slate-900 px-6 py-3 text-white disabled:opacity-40 dark:bg-slate-100 dark:text-slate-900"
         @click="store.validarNoBackend()">
-        {{ validandoBackend ? 'Validando no servidor...' : 'Validar clientes no backend' }}
+        {{ validandoBackend ? 'Processando e salvando...' : store.loteSalvo ? 'Lote salvo' : 'Processar e salvar no banco' }}
       </button>
-      <p class="mt-2 text-sm">Envia somente as linhas válidas. Exige faturamento anual e data de contratação; não grava no banco.</p>
+      <p class="mt-2 text-sm">Envia somente as linhas válidas ao Java e ao Python, que grava um lote no PostgreSQL. Exige faturamento anual e data de contratação. Cada novo envio cria um lote independente.</p>
       <p v-if="resultadoBackend" role="status" class="mt-2 text-emerald-700">{{ resultadoBackend }}</p>
     </div>
 

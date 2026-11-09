@@ -7,8 +7,8 @@ import { interpretarNumero } from '../src/utils/formato.js'
 import { contar, evolucao, estatisticas } from '../src/utils/analise.js'
 
 const arquivo = bytes => ({ arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) })
-const cabecalho = ['codigo_cliente', 'cliente', 'consultor', 'segmento', 'nivel', 'faturamento_anual', 'servico']
-const linha = ['C1', 'Empresa', 'Ana', 'IND.', 'A', 12000, 'Internet Dedicada']
+const cabecalho = ['codigo_cliente', 'cliente', 'consultor', 'segmento', 'nivel', 'faturamento_anual', 'servico', 'data_contratacao']
+const linha = ['C1', 'Empresa', 'Ana', 'IND.', 'A', 12000, 'Internet Dedicada', '2025-01-15']
 function planilha(colunas = cabecalho, dados = [linha]) {
   const pasta = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(pasta, XLSX.utils.aoa_to_sheet([colunas, ...dados]), 'dados_importacao')
@@ -33,6 +33,15 @@ test('números inválidos não viram zero e faixas preservam ponto médio', () =
   assert.equal(interpretarNumero('-500'), -500)
   assert.equal(interpretarNumero('de 500 mil a 1 milhão'), 750000)
   assert.equal(interpretarNumero('0'), 0)
+})
+
+test('CSV da integração separa três clientes válidos e uma linha negativa', async () => {
+  const bytes = fs.readFileSync(new URL('../../Data/exemplo_integracao.csv', import.meta.url))
+  const resultado = await lerPlanilha(arquivo(bytes))
+  assert.equal(resultado.resumo.linhas, 4)
+  assert.equal(resultado.resumo.validas, 3)
+  assert.equal(resultado.resumo.comErro, 1)
+  assert.equal(resultado.clientes[0].segmento, 'Indústria')
 })
 
 test('valida coluna opcional de e-mail e limpa espaços dos textos', async () => {

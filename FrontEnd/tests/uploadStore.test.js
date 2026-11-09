@@ -28,10 +28,13 @@ test('planilha da aula envia DTO anual, guarda retorno e mostra erro do servidor
       assert.equal(dados[0].faturamentoAnual, 100)
       assert.equal(dados[0].dataContratacao, '2025-01-15')
       assert.equal(dados[0].uf, 'sp')
-      return { data: { linhas: dados, totalValidadas: dados.length, descartadas: 0 } }
+      return { data: { linhas: dados, totalValidadas: dados.length, descartadas: 0, loteId: 7, status: 'PROCESSADO' } }
     }
     assert.equal(await store.validarNoBackend(), true)
     assert.equal(store.clientesPreparados.length, 1)
+    assert.equal(store.loteSalvo, 7)
+    assert.equal(await store.validarNoBackend(), false) // Não duplica um lote confirmado.
+    assert.equal(await store.importarPlanilha({ name: 'aula.xlsx', arrayBuffer: async () => bytes }), true)
     api.post = async () => { throw { response: { data: { message: 'Código repetido' } } } }
     assert.equal(await store.validarNoBackend(), false)
     assert.equal(store.erro, 'Código repetido')

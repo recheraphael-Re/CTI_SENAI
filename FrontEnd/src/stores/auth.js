@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api, { configurarAutenticacao } from '../services/api.js'
 import { useUploadStore } from './uploadStore.js'
+import { useDashboardStore } from './dashboard.js'
 
 const CHAVE = 'cti-auth-v1'
 export const useAuthStore = defineStore('auth', () => {
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     usuario.value = null
     try { sessionStorage.removeItem(CHAVE) } catch { /* Segue em memória. */ }
     useUploadStore().limpar()
+    useDashboardStore().limpar()
   }
   function aceitarUsuario(dado) {
     if (!dado?.id || !dado.nome || !['USER', 'ADMIN'].includes(dado.perfil) || dado.status !== 'ATIVO') {

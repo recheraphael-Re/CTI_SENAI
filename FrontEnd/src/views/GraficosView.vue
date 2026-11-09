@@ -1,6 +1,12 @@
 <template>
+  <div class="mb-6 flex flex-wrap gap-3">
+    <button class="rounded border px-4 py-2" :aria-pressed="!previaLocal" @click="previaLocal = false">Análises salvas no banco</button>
+    <button class="rounded border px-4 py-2" :aria-pressed="previaLocal" @click="previaLocal = true">Prévia local da planilha</button>
+  </div>
+  <AnalyticsPanel v-if="!previaLocal" />
   <!-- GRÁFICOS — KPIs e indicadores da carteira -->
-  <section>
+  <section v-else>
+    <p class="mb-4 rounded border p-3 text-sm">Prévia calculada no navegador. Para persistir e consultar a análise Python, processe e salve na tela de upload.</p>
     <p class="text-slate-600 dark:text-slate-400 mb-6">
       Visão geral dos principais indicadores e insights.
     </p>
@@ -77,6 +83,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import AnalyticsPanel from '../components/AnalyticsPanel.vue'
+const previaLocal = ref(false)
 import GraficoContagem from '../components/GraficoContagem.vue'
 import { contar, evolucao, estatisticas } from '../utils/analise.js'
 import { RouterLink } from 'vue-router'
