@@ -16,7 +16,8 @@ public class PythonEtlService {
     private final URI url;
     private final String chave;
     private final ObjectMapper json;
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    private final HttpClient http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+        .connectTimeout(Duration.ofSeconds(5)).build();
 
     public PythonEtlService(@Value("${app.etl.url:http://127.0.0.1:8000/etl}") String url,
             @Value("${app.etl.key:}") String chave, ObjectMapper json) {

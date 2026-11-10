@@ -89,3 +89,14 @@ test('falha de leitura encerra carregamento e informa erro', async () => {
   assert.equal(store.erro, 'Falha ao ler arquivo')
   assert.equal(store.temDados, false)
 })
+
+test('arquivo acima de 5 MB é recusado antes da leitura', async () => {
+  setActivePinia(createPinia())
+  const store = useUploadStore()
+  let leu = false
+  assert.equal(await store.importarPlanilha({ name: 'grande.xlsx', size: 5 * 1024 * 1024 + 1,
+    arrayBuffer: async () => { leu = true; return new ArrayBuffer(0) } }), false)
+  assert.match(store.erro, /5 MB/)
+  assert.equal(leu, false)
+  assert.equal(store.arquivo, null)
+})

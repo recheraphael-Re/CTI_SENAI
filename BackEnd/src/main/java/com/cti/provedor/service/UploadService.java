@@ -18,6 +18,7 @@ public class UploadService {
         this.service = service; this.validator = validator; this.maxLinhas = maxLinhas;
     }
     public ResultadoUpload validar(EnvioValidadasRequest envio) {
+        if (envio == null) throw new IllegalArgumentException("Confira os dados do upload.");
         var errosEnvio = validator.validate(envio);
         if (!errosEnvio.isEmpty()) throw new IllegalArgumentException("Confira os dados do upload.");
         if (envio.linhas().size() > maxLinhas)
@@ -25,17 +26,28 @@ public class UploadService {
         Set<String> codigos = new HashSet<>();
         Set<Integer> numeros = new HashSet<>();
         List<LinhaPreparada> preparadas = new ArrayList<>();
+        List<LinhaRejeitada> rejeitadas = new ArrayList<>();
+        int posicao = 2;
         for (var linha : envio.linhas()) {
+            int numero = linha.numeroLinha() == null ? posicao : linha.numeroLinha();
+            posicao++;
             var cliente = linha.cliente();
-            var erros = validator.validate(cliente);
-            if (!erros.isEmpty()) {
-                var erro = erros.stream().sorted(Comparator.comparing(e -> e.getPropertyPath().toString())).findFirst().orElseThrow();
-                throw new IllegalArgumentException("Linha " + linha.numeroLinha() + " - " + erro.getPropertyPath() + ": " + erro.getMessage());
+            List<String> erros = new ArrayList<>();
+            validator.validate(cliente).stream().sorted(Comparator.comparing(e -> e.getPropertyPath().toString()))
+                .forEach(e -> erros.add(e.getPropertyPath() + ": " + e.getMessage()));
+            if (numero <= 0 || !numeros.add(numero)) erros.add("Número da linha inválido ou repetido: " + numero);
+            if (cliente.codigoCliente() != null && !codigos.add(cliente.codigoCliente().trim().toUpperCase(Locale.ROOT)))
+                erros.add("Código repetido: " + cliente.codigoCliente().trim());
+            if (erros.isEmpty()) {
+                try { preparadas.add(new LinhaPreparada(numero, service.validarEPreparar(List.of(cliente)).get(0))); }
+                catch (IllegalArgumentException e) { erros.add(e.getMessage()); }
             }
-            if (!numeros.add(linha.numeroLinha())) throw new IllegalArgumentException("Número de linha repetido: " + linha.numeroLinha());
-            if (!codigos.add(cliente.codigoCliente().trim())) throw new IllegalArgumentException("Linha " + linha.numeroLinha() + ": código repetido: " + cliente.codigoCliente().trim());
-            preparadas.add(new LinhaPreparada(linha.numeroLinha(), service.validarEPreparar(List.of(cliente)).get(0)));
+            if (!erros.isEmpty()) rejeitadas.add(new LinhaRejeitada(numero, numero, List.copyOf(erros)));
         }
-        return new ResultadoUpload(envio.arquivoNome().trim(), envio.descartadas(), preparadas.size(), preparadas);
+        String nome = envio.arquivoNome().replace('\\', '/');
+        nome = nome.substring(nome.lastIndexOf('/') + 1).replaceAll("[\\p{Cntrl}]", "").trim();
+        if (nome.isEmpty()) nome = "planilha";
+        int descartadas = (envio.descartadas() == null ? 0 : envio.descartadas()) + rejeitadas.size();
+        return new ResultadoUpload(nome, descartadas, preparadas.size(), List.copyOf(preparadas), List.copyOf(rejeitadas));
     }
 }

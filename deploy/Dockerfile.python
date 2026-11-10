@@ -1,0 +1,8 @@
+FROM python:3.12-slim
+WORKDIR /app/analytics-python
+COPY analytics-python/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+COPY analytics-python/*.py ./
+COPY BackEnd/src/main/resources/db/analytics.sql /app/BackEnd/src/main/resources/db/analytics.sql
+EXPOSE 8000
+CMD ["sh", "-c", "exec uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000}"]

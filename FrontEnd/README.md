@@ -30,6 +30,10 @@ envia somente as linhas válidas ao Java e ao Python. Gráficos e relatórios ab
 as importações persistidas no PostgreSQL, com seleção do lote. A prévia local e seus erros
 continuam disponíveis em uma aba separada.
 
+O arquivo é limitado a 5 MB. A planilha `../sample-data/dados.xlsx` tem teste de regressão
+para 32 clientes válidos e 6 linhas inválidas. O dashboard inclui a carteira por consultor,
+os cinco maiores clientes, data da análise e estados dos lotes. Veja também [DEPLOY.md](../DEPLOY.md).
+
 1. Em `/app/upload`, selecione ou arraste um XLSX, XLS ou CSV e processe.
 2. Confira quantidades de linhas válidas, linhas com erro e ocorrências.
 3. Em `/app/relatorios`, consulte as linhas, pesquise e filtre os erros.

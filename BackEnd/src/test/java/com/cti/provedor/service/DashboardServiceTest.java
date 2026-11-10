@@ -33,7 +33,10 @@ class DashboardServiceTest {
         var resposta = service.obter(null);
         assertEquals("primeiro.xlsx", ((java.util.Map<?,?>)resposta.get("lote")).get("arquivoNome"));
         assertEquals(2, service.lotes().size());
-        assertEquals(409, assertThrows(ApiException.class, () -> service.obter(2L)).getStatusCode().value());
+        var falhou = service.obter(2L);
+        assertEquals("ERRO", ((java.util.Map<?,?>) falhou.get("lote")).get("status"));
+        assertNull(falhou.get("estatisticas"));
+        assertTrue(resposta.containsKey("geradoEm"));
         assertTrue(service.clientes(1).isEmpty());
     }
 }

@@ -23,12 +23,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const historico = await api.get('/api/dashboard/lotes')
       if (atual !== sequencia) return
       lotes.value = historico.data
-      const id = loteId || lotes.value.find(l => l.status === 'PROCESSADO')?.id
+      const id = loteId || lotes.value.find(l => l.status === 'PROCESSADO')?.id || lotes.value[0]?.id
       if (!id) return
-      const [analise, registros] = await Promise.all([
-        api.get('/api/dashboard', { params: { loteId: id } }),
-        api.get(`/api/dashboard/lotes/${id}/clientes`)
-      ])
+      const analise = await api.get('/api/dashboard', { params: { loteId: id } })
+      if (atual !== sequencia) return
+      const registros = analise.data.estatisticas ? await api.get(`/api/dashboard/lotes/${id}/clientes`) : { data: [] }
       if (atual !== sequencia) return
       resultado.value = analise.data; clientes.value = registros.data
     } catch (e) {

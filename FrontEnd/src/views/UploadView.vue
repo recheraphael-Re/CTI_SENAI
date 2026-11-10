@@ -26,7 +26,7 @@
       </label>
 
       <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-        Formatos aceitos: .xlsx, .xls, .csv
+        Formatos aceitos: .xlsx, .xls, .csv · máximo 5 MB
       </p>
 
       <p v-if="arquivo" class="mt-4 text-sm font-semibold text-brand dark:text-brand-light">
@@ -69,6 +69,9 @@
       </button>
       <p class="mt-2 text-sm">Envia somente as linhas válidas ao Java e ao Python, que grava um lote no PostgreSQL. Exige faturamento anual e data de contratação. Cada novo envio cria um lote independente.</p>
       <p v-if="resultadoBackend" role="status" class="mt-2 text-emerald-700">{{ resultadoBackend }}</p>
+      <ul v-if="store.rejeitadasBackend.length" class="mt-3 list-disc pl-5 text-rose-700 dark:text-rose-300" aria-label="Linhas rejeitadas pelo servidor">
+        <li v-for="(linha, i) in store.rejeitadasBackend" :key="i">Linha {{ linha.numeroLinha ?? linha.numero }}: {{ linha.erros.join('; ') }}</li>
+      </ul>
     </div>
 
     <!-- RESUMO DA IMPORTAÇÃO — o que o tratamento encontrou na planilha -->

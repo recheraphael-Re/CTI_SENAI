@@ -88,4 +88,10 @@ A reorganizacao nao renomeia tabelas nem altera registros do Azure. Mantivemos `
 
 O fluxo de upload foi integrado: UploadController revalida os dados, PythonEtlService envia ao FastAPI, e o Python limpa, calcula e grava o lote no esquema `cti_analytics`. DashboardController consulta os lotes, clientes e estatisticas. Os CRUDs JPA existentes permanecem independentes. Configure a chave ETL e execute a migracao manual antes de importar. Instrucoes completas: [INTEGRACAO_CTI.md](../INTEGRACAO_CTI.md).
 
+O upload separa linhas validas e rejeitadas. Numeros/datas invalidos sao erros da linha,
+sem interromper as demais. A resposta inclui linhasValidas, linhasInvalidas, totalLinhas
+e rejeitadas. Se todas forem invalidas, retorna 400 sem chamar o Python. O teste
+FluxoProfessorTest percorre o leitor Vue, o Java e a API Python com SQLite isolado;
+exige o ambiente virtual, node_modules e sample-data/dados.xlsx. Empacotamento: [DEPLOY.md](../DEPLOY.md).
+
 Detalhes da limpeza e dos arquivos preservados: [docs/ORGANIZACAO_PROJETO.md](docs/ORGANIZACAO_PROJETO.md).

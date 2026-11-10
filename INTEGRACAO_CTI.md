@@ -86,6 +86,10 @@ O serviço Python deve ficar acessível ao backend; o navegador não precisa ace
 
 ## 5. Importar e conferir o resultado
 
+Para conferir a equivalência com o professor, importe também `sample-data/dados.xlsx`:
+38 linhas, 32 válidas, 6 inválidas, 61 contratos e média anual de R$ 2.261.250,00.
+O nível minúsculo é normalizado somente no fluxo anual; o gabarito mensal é preservado.
+
 1. Acesse **Upload** e selecione `Data/exemplo_integracao.csv`.
 2. Clique em **Ler e conferir planilha**. São 4 linhas: 3 válidas e 1 com faturamento negativo.
 3. Confira as linhas e clique em **Processar e salvar no banco**.
@@ -143,6 +147,13 @@ No Python: `GET /saude` confirma o processo; `POST /etl` exige `X-ETL-Key` igual
 `ETL_API_KEY`. A resposta de sucesso inclui o lote gravado. Falha de gravação desfaz clientes,
 contratos e estatísticas da transação; quando o lote já existe, ele é marcado como `ERRO`.
 
+O Java separa linhas válidas e rejeitadas antes de chamar o Python. A resposta inclui
+`totalLinhas`, `linhasValidas`, `linhasInvalidas` e `rejeitadas` com o número e os erros
+de cada linha recusada. Os campos antigos de resposta permanecem como aliases para o Vue.
+Se nenhuma linha for válida, retorna 400 e não chama o Python. Números e datas inválidos
+em uma linha não impedem o processamento das demais. `POST /testar` no Python calcula a
+amostra sem conectar ao banco. O navegador limita o arquivo a 5 MB.
+
 ## 8. Verificações automatizadas
 
 Na raiz:
@@ -163,8 +174,20 @@ gravação e rollback usando SQLite isolado. Os testes Vue verificam o gabarito,
 e limpeza da sessão. Esses bancos de teste não acessam o PostgreSQL configurado.
 H2 e SQLite não substituem a verificação final no PostgreSQL com os três serviços ligados.
 
-Na verificação desta adequação, passaram 33 testes Java, 16 testes de frontend e 5 testes
-Python, além do build do Vue. A conexão ao PostgreSQL definido no `.env` local não ficou
+`FluxoProfessorTest` executa o leitor real do Vue, a validação Java e a API Python via HTTP,
+com gravação em SQLite isolado. Ele verifica as contagens da amostra do professor. Exige
+o ambiente virtual, as dependências npm e `sample-data/dados.xlsx`; sem esses requisitos,
+somente esse teste é pulado. Execute `mvn.cmd test` depois de preparar os ambientes.
+
+Para testar serviços já ligados, use `testes/testar_tudo.py`. Configure `TEST_EMAIL` e
+`TEST_PASSWORD` de uma conta ativa; `--gravar` permite criar um lote de demonstração e
+`--exigir-todos` reprova execuções com testes pulados. Consulte [DEPLOY.md](DEPLOY.md)
+para os arquivos de empacotamento, proxy, portas e configuração de hospedagem.
+
+Na verificação atual, passaram 37 testes Java, 19 testes de frontend e 6 testes
+Python, além do build do Vue. O teste integrado confirmou 32 clientes e 61 contratos em
+SQLite isolado usando a planilha do professor, o leitor Vue, o Java e a API Python real.
+A conexão ao PostgreSQL definido no `.env` local não ficou
 disponível; a migração não foi aplicada nesse servidor. Após restabelecer o acesso,
 execute `migrar.py` e `verificar.py` e confira o exemplo com os três serviços ligados.
 
@@ -191,3 +214,12 @@ execute `migrar.py` e `verificar.py` e confira o exemplo com os três serviços 
 - [ ] Gráficos e relatórios continuam disponíveis após atualizar a página.
 - [ ] Desligar o Python faz o envio falhar sem apresentar sucesso.
 - [ ] Documentos e gráficos adicionais exigidos pela rubrica foram conferidos.
+
+Verificações já concluídas no código:
+
+- [x] Planilha do professor: 32 válidas, 6 inválidas e média de R$ 2.261.250,00.
+- [x] Fluxo integrado isolado: 61 contratos, 6 segmentos, 4 consultores e 6 serviços.
+- [x] Upload parcial, rejeições por linha e duplicidade sem diferenciar caixa.
+- [x] Dashboard por consultor, maiores clientes e estados de processamento/falha.
+- [x] Limite de arquivo, endpoint de cálculo sem banco e verificador dos serviços.
+- [x] Configuração do Compose validada; execução dos containers depende do Docker Engine.

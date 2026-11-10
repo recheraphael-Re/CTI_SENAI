@@ -27,6 +27,18 @@ test('base oficial preserva todas as ocorrências do gabarito', async t => {
   assert.equal(resultado.periodoFaturamento, 'mensal')
 })
 
+test('planilha do professor tem 32 válidas, 6 inválidas e média 2261250', async t => {
+  const caminho = new URL('../../sample-data/dados.xlsx', import.meta.url)
+  if (!fs.existsSync(caminho)) return t.skip('Amostra removida após os testes')
+  const resultado = await lerPlanilha(arquivo(fs.readFileSync(caminho)))
+  assert.equal(resultado.resumo.linhas, 38)
+  assert.equal(resultado.resumo.validas, 32)
+  assert.equal(resultado.resumo.comErro, 6)
+  const validas = resultado.clientes.filter(c => c.valida)
+  assert.equal(validas.reduce((s,c) => s + c.faturamento, 0) / validas.length, 2261250)
+  assert.equal(validas.find(c => c.linha === 35).nivel, 'B')
+})
+
 test('números inválidos não viram zero e faixas preservam ponto médio', () => {
   for (const entrada of ['abc', '12abc', '1,2,3', '', 'de 100 a erro']) assert.equal(interpretarNumero(entrada), null)
   assert.equal(interpretarNumero('R$ 1.200,50'), 1200.5)

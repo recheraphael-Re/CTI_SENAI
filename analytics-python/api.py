@@ -76,3 +76,13 @@ def etl(pedido: Pedido, x_etl_key: Annotated[str | None, Header()] = None):
             except Exception:
                 log.exception('Falha ao registrar erro do lote')
         raise HTTPException(503, 'Não foi possível gravar o lote. Confira banco e migração.') from None
+
+@app.post('/testar')
+def testar(linhas: list[dict]):
+    """Calcula a amostra sem abrir conexão nem gravar no banco."""
+    if not linhas or len(linhas) > 5000:
+        raise HTTPException(422, 'Envie de 1 a 5000 linhas para o teste.')
+    resultado = tratar(pd.DataFrame(linhas).astype(object))
+    if resultado.tratado.empty:
+        raise HTTPException(422, 'Nenhuma linha válida para analisar.')
+    return calcular(resultado, len(linhas))

@@ -1,0 +1,11 @@
+.git
+**/.env
+**/.env.*
+**/.jwt-secret.local
+**/node_modules
+**/.venv
+**/__pycache__
+**/target
+**/dist
+tmp
+.env.deploy

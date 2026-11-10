@@ -5,6 +5,7 @@
 // plantados de propósito e uma aba "gabarito_erros" com o resultado esperado.
 // As regras abaixo reproduzem esse gabarito.
 import { normalizar, interpretarNumero } from './formato.js'
+export const LIMITE_MB = 5
 
 // A planilha oficial tem 5 abas e manda importar só esta
 const ABA_DADOS = 'dados_importacao'
@@ -166,7 +167,7 @@ function validar(registro, bruto, listas, vistos, temEmail, anual) {
   // O domínio é conferido pelo texto EXATO da planilha, não pelo padronizado:
   // "ativo" em minúsculo é erro de domínio, mesmo aparecendo como "ATIVO" na tela.
   const nivelBruto = String(bruto.nivel ?? '').trim()
-  if (nivelBruto && !listas.niveis.includes(nivelBruto)) {
+  if (nivelBruto && !(anual ? LISTAS_PADRAO.niveis.includes(nivelBruto.toUpperCase()) : listas.niveis.includes(nivelBruto))) {
     acusar('DOMINIO_INVALIDO', 'nivel', `Nível fora da lista: ${nivelBruto}.`)
   }
 
@@ -226,11 +227,13 @@ function validar(registro, bruto, listas, vistos, temEmail, anual) {
 // Lê o arquivo escolhido no navegador. Roda 100% no front: nada é enviado
 // para servidor nenhum. Devolve as linhas, os erros e o resumo da importação.
 export async function lerPlanilha(arquivo) {
+  if (arquivo.size > LIMITE_MB * 1024 * 1024) throw new Error(`O arquivo tem mais de ${LIMITE_MB} MB.`)
   // import() dinâmico: o SheetJS (grande) só é baixado quando alguém envia
   // uma planilha de verdade, e não no primeiro carregamento do site.
   const XLSX = await import('xlsx')
 
   const buffer = await arquivo.arrayBuffer()
+  if (buffer.byteLength > LIMITE_MB * 1024 * 1024) throw new Error(`O arquivo tem mais de ${LIMITE_MB} MB.`)
   const bytes = new Uint8Array(buffer)
   const binario = (bytes[0] === 0x50 && bytes[1] === 0x4b) || (bytes[0] === 0xd0 && bytes[1] === 0xcf)
   // CSV e planilhas XML em texto usam UTF-8; XLS/XLSX preservam o leitor binário.

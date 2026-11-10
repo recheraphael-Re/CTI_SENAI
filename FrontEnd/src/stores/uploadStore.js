@@ -1,11 +1,11 @@
 import api, { mensagemErro } from '../services/api.js'
 import { ref, shallowRef, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { lerPlanilha } from '../utils/planilha.js'
+import { lerPlanilha, LIMITE_MB } from '../utils/planilha.js'
 import { formatarMoeda } from '../utils/formato.js'
 import { useDashboardStore } from './dashboard.js'
 
-const CHAVE = 'cti-insights-clientes-v2'
+const CHAVE = 'cti-insights-clientes-v3'
 
 // Enquanto ninguém enviou planilha, as telas mostram esta amostra,
 // para o layout nunca aparecer vazio na apresentação.
@@ -53,6 +53,7 @@ export const useUploadStore = defineStore('upload', () => {
   const clientesPreparados = ref([])
   const resultadoBackend = ref('')
   const loteSalvo = ref(null)
+  const rejeitadasBackend = ref([])
   let operacao = 0
   const erro = ref('')
 
@@ -110,6 +111,7 @@ export const useUploadStore = defineStore('upload', () => {
     erro.value = ''
     resultadoBackend.value = ''
     clientesPreparados.value = []
+    rejeitadasBackend.value = []
     if (periodoFaturamento.value !== 'anual') {
       erro.value = 'Para esta validação, use a coluna faturamento_anual. O valor mensal não será convertido automaticamente.'
       return false
@@ -144,11 +146,15 @@ export const useUploadStore = defineStore('upload', () => {
       }
       loteSalvo.value = data.loteId
       clientesPreparados.value = data.linhas
-      resultadoBackend.value = `Lote #${data.loteId} salvo: ${data.totalValidadas} clientes processados pelo Python. ${data.descartadas} linhas descartadas.`
+      rejeitadasBackend.value = data.rejeitadas || []
+      resultadoBackend.value = `Lote #${data.loteId} salvo: ${data.linhasValidas ?? data.totalValidadas} clientes processados pelo Python. ${data.linhasInvalidas ?? data.descartadas} linhas descartadas.`
       useDashboardStore().limpar()
       return true
     } catch (e) {
-      if (atual === operacao) erro.value = mensagemErro(e)
+      if (atual === operacao) {
+        erro.value = mensagemErro(e)
+        rejeitadasBackend.value = e.response?.data?.rejeitadas || []
+      }
       return false
     } finally {
       validandoBackend.value = false
@@ -159,7 +165,11 @@ export const useUploadStore = defineStore('upload', () => {
     if (carregando.value || validandoBackend.value) return false
     erro.value = ''
     arquivo.value = null
-    if (!novo) return false
+    if (!novo) { erro.value = 'Selecione um arquivo XLSX, XLS ou CSV.'; return false }
+    if (novo.size > LIMITE_MB * 1024 * 1024) {
+      erro.value = `O arquivo tem mais de ${LIMITE_MB} MB.`
+      return false
+    }
     if (!/\.(xlsx|xls|csv)$/i.test(novo.name)) {
       erro.value = 'Selecione um arquivo XLSX, XLS ou CSV.'
       return false
@@ -182,7 +192,7 @@ export const useUploadStore = defineStore('upload', () => {
   async function importarPlanilha(arquivoSelecionado) {
     if (carregando.value || validandoBackend.value) return false
     erro.value = ''
-    selecionarArquivo(arquivoSelecionado)
+    if (!selecionarArquivo(arquivoSelecionado)) return false
     if (!validarArquivo()) return false
     clientesPreparados.value = []
     resultadoBackend.value = ''
@@ -194,6 +204,7 @@ export const useUploadStore = defineStore('upload', () => {
       const lido = await lerPlanilha(arquivoSelecionado)
       if (atual !== operacao) return false
       loteSalvo.value = null
+      rejeitadasBackend.value = []
       dataUpload.value = new Date().toISOString()
       periodoFaturamento.value = lido.periodoFaturamento
       totalColunas.value = lido.totalColunas
@@ -224,6 +235,7 @@ export const useUploadStore = defineStore('upload', () => {
     clientesPreparados.value = []
     resultadoBackend.value = ''
     loteSalvo.value = null
+    rejeitadasBackend.value = []
     arquivo.value = null
     dadosOriginais.value = []
     carregando.value = false
@@ -253,6 +265,7 @@ export const useUploadStore = defineStore('upload', () => {
   const clientesNivelA = computed(() => linhasValidas.value.filter(c => c.nivel === 'A').length)
 
   return {
+    rejeitadasBackend,
     loteSalvo,
     validarNoBackend, validandoBackend, clientesPreparados, resultadoBackend,
     arquivo,

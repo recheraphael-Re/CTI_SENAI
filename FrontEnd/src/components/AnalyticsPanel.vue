@@ -20,17 +20,31 @@
         {{ lote.linhasValidas }} clientes válidos · {{ lote.linhasInvalidas }} linhas descartadas.
         Os lotes são independentes; seus valores não são somados.
       </p>
+      <p v-if="lote.status === 'ERRO'" role="alert" class="rounded border border-rose-300 p-4 text-rose-700 dark:text-rose-300">Falha no lote: {{ lote.mensagem || 'Consulte o log do serviço Python.' }}</p>
+      <p v-else-if="!stats" role="status" class="rounded border p-4">{{ lote.status === 'PROCESSANDO' ? 'O Python está processando este lote. A consulta será atualizada automaticamente.' : 'Este lote ainda não possui estatísticas disponíveis.' }}</p>
+      <template v-if="stats">
+      <p class="text-sm text-slate-500 dark:text-slate-400">Análise gerada em {{ dataHora(store.resultado.geradoEm || stats.geradoEm) }} · {{ stats.resumo.consultores }} consultores.</p>
       <template v-if="!relatorio">
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <CartaoIndicador v-for="item in indicadores" :key="item.rotulo" v-bind="item" />
         </div>
         <RevenueChart titulo="Faturamento anual dos clientes por segmento" :rotulos="faturamento.rotulos" :valores="faturamento.valores" />
+        <RevenueChart titulo="Faturamento anual das empresas por consultor" :rotulos="consultores.rotulos" :valores="consultores.valores" />
         <div class="grid min-w-0 gap-6 lg:grid-cols-2">
           <GraficoContagem titulo="Clientes por segmento" descricao="Clientes válidos do lote." :dados="serie('porSegmento', 'segmento', 'clientes')" />
           <GraficoContagem titulo="Clientes por nível" descricao="Distribuição de A, B e C." :dados="serie('porNivel', 'nivel', 'clientes')" />
           <GraficoContagem titulo="Clientes por mês de contratação" descricao="Meses entre a primeira e a última contratação; intervalos sem registros aparecem com zero." :dados="serie('porMes', 'mes', 'clientes')" linha />
           <GraficoContagem titulo="Serviços contratados" descricao="Um cliente pode contratar mais de um serviço." :dados="serie('porServico', 'servico', 'contratos')" />
         </div>
+        <section v-if="stats.topClientes?.length" class="overflow-x-auto rounded-xl border p-5 dark:border-slate-700">
+          <h3 class="mb-3 text-lg font-bold">Cinco maiores clientes por faturamento anual</h3>
+          <table class="w-full text-left text-sm">
+            <thead><tr><th v-for="titulo in ['Código', 'Cliente', 'Segmento', 'Nível', 'Faturamento anual']" :key="titulo" scope="col" class="p-3">{{ titulo }}</th></tr></thead>
+            <tbody><tr v-for="c in stats.topClientes" :key="c.codigo" class="border-t dark:border-slate-700">
+              <td class="p-3">{{ c.codigo }}</td><td class="p-3">{{ c.nome }}</td><td class="p-3">{{ c.segmento }}</td><td class="p-3">{{ c.nivel }}</td><td class="p-3">{{ moeda(c.faturamento) }}</td>
+            </tr></tbody>
+          </table>
+        </section>
         <section class="rounded-xl border p-5 dark:border-slate-700">
           <h3 class="text-lg font-bold">Análise e insights do lote</h3>
           <p class="mt-3">Desvio padrão amostral: {{ moeda(stats.resumo.desvioPadrao) }}. Quartis: {{ moeda(stats.resumo.q1) }} e {{ moeda(stats.resumo.q3) }}.</p>
@@ -58,12 +72,13 @@
           </table>
         </div>
       </section>
+      </template>
     </template>
   </section>
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useDashboardStore } from '../stores/dashboard.js'
 import CartaoIndicador from './CartaoIndicador.vue'
 import RevenueChart from './RevenueChart.vue'
@@ -81,18 +96,27 @@ const indicadores = computed(() => stats.value ? [
   { rotulo: 'Clientes', valor: String(stats.value.resumo.totalClientes) },
   ...[['Faturamento anual total', 'faturamentoTotal'], ['Média', 'media'], ['Mediana', 'mediana']]
     .map(([rotulo, chave]) => ({ rotulo, valor: moeda(stats.value.resumo[chave]) })),
-  { rotulo: 'Consultores', valor: String(stats.value.resumo.consultores) }
+  { rotulo: 'Desvio padrão amostral', valor: moeda(stats.value.resumo.desvioPadrao) }
 ] : [])
 function serie(chave, nome, valor) {
   const itens = stats.value?.[chave] || []
   return { rotulos: itens.map(i => i[nome]), valores: itens.map(i => i[valor]) }
 }
 const faturamento = computed(() => serie('porSegmento', 'segmento', 'faturamentoTotal'))
+const consultores = computed(() => serie('porConsultor', 'consultor', 'faturamentoTotal'))
+const dataHora = valor => valor ? new Date(valor).toLocaleString('pt-BR') : 'Não informada'
 const filtrados = computed(() => {
   const termo = busca.value.trim().toLocaleLowerCase('pt-BR')
   return store.clientes.filter(c => [c.codigo, c.nome, c.consultor, c.segmento, c.servico]
     .some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(termo)))
 })
-function carregar() { return store.carregar(selecionado.value || null) }
+let relogio
+let ativo = true
+async function carregar() {
+  clearTimeout(relogio)
+  await store.carregar(selecionado.value || null)
+  if (ativo && store.resultado?.lote.status === 'PROCESSANDO') relogio = setTimeout(carregar, 5000)
+}
 onMounted(carregar)
+onBeforeUnmount(() => { ativo = false; clearTimeout(relogio) })
 </script>

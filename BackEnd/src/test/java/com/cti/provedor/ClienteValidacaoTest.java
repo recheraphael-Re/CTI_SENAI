@@ -31,7 +31,43 @@ class ClienteValidacaoTest {
         mvc.perform(post("/api/clientes/validar").contentType(MediaType.APPLICATION_JSON).content("[" + cliente + "]"))
             .andExpect(status().isOk()).andExpect(jsonPath("$[0].codigoCliente").value("CTI001"))
             .andExpect(jsonPath("$[0].segmento").value("Indústria"))
+            .andExpect(jsonPath("$[0].consultor").value("Ana Souza"))
             .andExpect(jsonPath("$[0].uf").value("SP"));
+    }
+    @Test void padronizaNomesComParticulasEPreservaSegmentosDoProjeto() throws Exception {
+        for (String[] exemplo : new String[][] {
+                {" MARIA   DA SILVA ", "Maria da Silva", "LOGÍSTICA", "Logística"},
+                {" JOAO DOS SANTOS E ANA ", "Joao dos Santos e Ana", "TECH.", "Tecnologia"}}) {
+            String envio = cliente.replace(" ANA SOUZA ", exemplo[0]).replace("IND.", exemplo[2]);
+            mvc.perform(post("/api/clientes/validar").contentType(MediaType.APPLICATION_JSON).content("[" + envio + "]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].consultor").value(exemplo[1]))
+                .andExpect(jsonPath("$[0].segmento").value(exemplo[3]));
+        }
+        mvc.perform(post("/api/clientes/validar").contentType(MediaType.APPLICATION_JSON)
+                .content("[" + cliente.replace("IND.", "Segmento inexistente") + "]"))
+            .andExpect(status().isBadRequest());
+    }
+    @Test void uploadMistoProcessaBoasEListaErrosSemGravarAsInvalidas() throws Exception {
+        String boa = cliente.replace("{", "{\"numeroLinha\":2,");
+        String repetida = cliente.replace("{", "{\"numeroLinha\":3,").replace("CTI001", "cti001");
+        String nivel = cliente.replace("{", "{\"numeroLinha\":4,").replace("CTI001", "OUTRA").replace("\"A\"", "\"X\"");
+        String data = cliente.replace("{", "{\"numeroLinha\":5,").replace("CTI001", "DATA").replace("2025-01-15", "2025-02-30");
+        String valor = cliente.replace("{", "{\"numeroLinha\":6,").replace("CTI001", "VALOR").replace(":100", ":\"abc\"");
+        String envio = "{\"arquivoNome\":\"teste.xlsx\",\"linhas\":[" + String.join(",", boa, repetida, nivel, data, valor) + "]}";
+        mvc.perform(post("/api/uploads/validadas").contentType(MediaType.APPLICATION_JSON).content(envio))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.linhasValidas").value(1))
+            .andExpect(jsonPath("$.linhasInvalidas").value(4)).andExpect(jsonPath("$.totalLinhas").value(5))
+            .andExpect(jsonPath("$.rejeitadas.length()").value(4))
+            .andExpect(jsonPath("$.rejeitadas[0].numeroLinha").value(3));
+    }
+    @Test void uploadAceitaNumeroBrasileiroDataBrasileiraENivelMinusculo() throws Exception {
+        String linha = cliente.replace("{", "{\"numeroLinha\":2,")
+            .replace(":100", ":\"R$ 1.850.000,50\"").replace("2025-01-15", "15/01/2025").replace("\"A\"", "\"b\"");
+        mvc.perform(post("/api/uploads/validadas").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"arquivoNome\":\"teste.xlsx\",\"linhas\":[" + linha + "]}"))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.linhas[0].cliente.nivelCliente").value("B"))
+            .andExpect(jsonPath("$.linhas[0].cliente.faturamentoAnual").value(1850000.50));
     }
     @Test void uploadPreservaOrigemEIdentificaLinhaInvalida() throws Exception {
         String linha = cliente.replace("{", "{\"numeroLinha\":15,");

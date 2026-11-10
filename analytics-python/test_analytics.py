@@ -66,6 +66,15 @@ class AnalyticsTest(unittest.TestCase):
             self.assertIsNone(payload['resumo']['desvioPadrao'])
             json.dumps(payload, allow_nan=False)
 
+    def test_endpoint_testar_calcula_amostra_sem_abrir_banco(self):
+        from pathlib import Path
+        amostra = json.loads((Path(__file__).parent / 'amostras/clientes.json').read_text(encoding='utf-8'))
+        with patch('api.engine') as conexao:
+            r = self.client.post('/testar', json=amostra)
+            self.assertEqual(r.status_code, 200, r.text)
+            self.assertEqual(r.json()['resumo']['media'], 1135000)
+            conexao.assert_not_called()
+
     def test_falha_no_meio_da_gravacao_faz_rollback(self):
         def falhar(conn, cursor, statement, parameters, context, executemany):
             if statement.startswith('INSERT INTO estatistica_lote'):

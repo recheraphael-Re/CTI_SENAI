@@ -6,3 +6,4 @@ package-lock.json
 **/.venv/
 **/__pycache__/
 analytics-python/.env
+.env.deploy

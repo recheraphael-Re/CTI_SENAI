@@ -43,3 +43,21 @@ test('limpar sessão impede restauração de dados por uma resposta atrasada', a
     assert.equal(store.carregando, false)
   } finally { api.get = original }
 })
+
+test('lote com erro permanece visível sem tentar carregar clientes', async () => {
+  setActivePinia(createPinia())
+  const store = useDashboardStore()
+  const original = api.get
+  try {
+    api.get = async url => {
+      if (url.endsWith('/lotes')) return { data: [{ id: 3, status: 'ERRO' }] }
+      assert.equal(url, '/api/dashboard')
+      return { data: { lote: { id: 3, status: 'ERRO', mensagem: 'Falha no processamento' }, estatisticas: null } }
+    }
+    await store.carregar()
+    assert.equal(store.resultado.lote.status, 'ERRO')
+    assert.equal(store.resultado.lote.mensagem, 'Falha no processamento')
+    assert.equal(store.clientes.length, 0)
+    assert.equal(store.erro, '')
+  } finally { api.get = original }
+})

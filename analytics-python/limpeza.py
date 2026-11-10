@@ -16,6 +16,7 @@ SEGMENTOS.update({_simples_nome: nome for _simples_nome, nome in [
 SERVICOS.update({nome.lower(): nome for nome in ['Link Corporativo', 'Telefonia IP',
     'Cloud Backup', 'Firewall Gerenciado', 'SD-WAN', 'Backup Corporativo', 'Wi-Fi Corporativo']})
 NIVEIS = {'A', 'B', 'C'}
+SEGMENTOS['tech'] = 'Tecnologia'
 PARTICULAS = {'de', 'da', 'do', 'das', 'dos', 'e'}
 
 def _simples(texto: str) -> str:

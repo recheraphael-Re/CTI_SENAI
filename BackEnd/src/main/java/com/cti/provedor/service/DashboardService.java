@@ -13,7 +13,7 @@ public class DashboardService {
     private final ObjectMapper json;
     private static final String LOTES = "SELECT id, arquivo_nome AS \"arquivoNome\", enviado_em AS \"enviadoEm\", "
         + "status, total_linhas AS \"totalLinhas\", linhas_validas AS \"linhasValidas\", "
-        + "linhas_invalidas AS \"linhasInvalidas\" FROM cti_analytics.upload_lote ";
+        + "linhas_invalidas AS \"linhasInvalidas\", linhas_com_aviso AS \"linhasComAviso\", mensagem FROM cti_analytics.upload_lote ";
     public DashboardService(JdbcTemplate jdbc, ObjectMapper json) { this.jdbc = jdbc; this.json = json; }
 
     public List<Map<String, Object>> lotes() { return jdbc.queryForList(LOTES + "ORDER BY id DESC LIMIT 50"); }
@@ -22,12 +22,17 @@ public class DashboardService {
         var lotes = id == null
             ? jdbc.queryForList(LOTES + "WHERE status = 'PROCESSADO' ORDER BY id DESC LIMIT 1")
             : jdbc.queryForList(LOTES + "WHERE id = ?", id);
+        if (id == null && lotes.isEmpty()) lotes = jdbc.queryForList(LOTES + "ORDER BY id DESC LIMIT 1");
         if (lotes.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND, "LOTE_NAO_ENCONTRADO", "Nenhum lote processado encontrado.");
         var lote = lotes.getFirst();
-        var contas = jdbc.queryForList("SELECT resultado FROM cti_analytics.estatistica_lote WHERE lote_id = ?", lote.get("id"));
-        if (contas.isEmpty()) throw new ApiException(HttpStatus.CONFLICT, "LOTE_SEM_RESULTADO", "O lote ainda não tem análises disponíveis.");
+        var contas = jdbc.queryForList("SELECT gerado_em, resultado FROM cti_analytics.estatistica_lote WHERE lote_id = ?", lote.get("id"));
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("lote", lote); resposta.put("geradoEm", null); resposta.put("estatisticas", null);
+        if (contas.isEmpty() || !"PROCESSADO".equals(lote.get("status"))) return resposta;
         try {
-            return Map.of("lote", lote, "estatisticas", json.readTree((String) contas.getFirst().get("resultado")));
+            resposta.put("geradoEm", contas.getFirst().get("gerado_em"));
+            resposta.put("estatisticas", json.readTree((String) contas.getFirst().get("resultado")));
+            return resposta;
         } catch (java.io.IOException e) {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "ANALISE_INVALIDA", "As análises gravadas estão inválidas.");
         }
