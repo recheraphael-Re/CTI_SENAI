@@ -80,7 +80,7 @@ class AnalyticsTest(unittest.TestCase):
             if statement.startswith('INSERT INTO estatistica_lote'):
                 raise ValueError('falha simulada depois dos clientes e contratos')
         event.listen(self.engine, 'before_cursor_execute', falhar)
-        with self.assertLogs('api', level='ERROR'):
+        with self.assertLogs('analytics', level='ERROR'):
             self.assertEqual(self.enviar().status_code, 503)
         with self.engine.connect() as conn:
             for tabela in ['cliente', 'contrato', 'consultor', 'segmento', 'servico', 'estatistica_lote']:
@@ -89,7 +89,9 @@ class AnalyticsTest(unittest.TestCase):
 
     def test_recusa_chave_contagens_e_linhas_invalidas_sem_gravar(self):
         self.assertEqual(self.enviar(chave='errada').status_code, 401)
+        self.assertEqual(self.enviar(recebidas=0).status_code, 422)
         self.assertEqual(self.enviar(recebidas=4).status_code, 422)
+        self.assertEqual(self.enviar(comAviso=2).status_code, 422)
         for mudanca in [dict(segmento='Desconhecido'), dict(faturamento_anual=-1),
                         dict(data_contratacao='2025-02-30'), dict(codigo_cliente='A B')]:
             c = linha(); c.update(mudanca)
@@ -117,6 +119,18 @@ class AnalyticsTest(unittest.TestCase):
         self.assertEqual(payload['resumo']['desvioPadrao'], 100)
         self.assertEqual(payload['correlacao']['pearson'], 1)
         json.dumps(payload, allow_nan=False)
+
+    def test_contrato_camel_case_cria_lote_e_preserva_avisos(self):
+        from pathlib import Path
+        dados = json.loads((Path(__file__).parent / 'amostras/clientes.json').read_text(encoding='utf-8'))
+        r = self.enviar(dados, recebidas=len(dados), invalidas=0, comAviso=1)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(r.json()['totalValidadas'], len(dados))
+        with self.engine.connect() as c:
+            lote = c.execute(text('SELECT id, status, linhas_com_aviso FROM upload_lote')).mappings().one()
+            self.assertEqual(r.json()['loteId'], lote['id'])
+            self.assertEqual(lote['status'], 'PROCESSADO')
+            self.assertEqual(lote['linhas_com_aviso'], 1)
 
 if __name__ == '__main__':
     unittest.main()

@@ -40,9 +40,12 @@ class PythonEtlServiceTest {
         assertEquals(42, service().enviar(lote()));
         var corpo = json.readTree(recebido);
         assertEquals(3, corpo.path("recebidas").asInt());
+        assertEquals("clientes.xlsx", corpo.path("arquivoNome").asText());
         assertEquals(2, corpo.path("invalidas").asInt());
-        assertEquals("CTI1", corpo.path("linhas").get(0).path("codigo_cliente").asText());
-        assertEquals("2025-01-15", corpo.path("linhas").get(0).path("data_contratacao").asText());
+        assertEquals(0, corpo.path("comAviso").asInt());
+        assertFalse(corpo.has("loteId"));
+        assertEquals("CTI1", corpo.path("linhas").get(0).path("codigoCliente").asText());
+        assertEquals("2025-01-15", corpo.path("linhas").get(0).path("dataContratacao").asText());
         assertEquals("teste", chave);
     }
     @Test void falhaPythonNuncaRetornaSucesso() {

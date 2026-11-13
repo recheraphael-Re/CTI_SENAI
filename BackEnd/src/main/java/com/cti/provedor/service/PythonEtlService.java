@@ -30,18 +30,19 @@ public class PythonEtlService {
         var linhas = upload.linhas().stream().map(l -> {
             var c = l.cliente();
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("linha", l.numeroLinha()); m.put("codigo_cliente", c.codigoCliente());
-            m.put("nome_cliente", c.nomeCliente()); m.put("consultor", c.consultor());
-            m.put("segmento", c.segmento()); m.put("nivel_cliente", c.nivelCliente());
-            m.put("faturamento_anual", c.faturamentoAnual());
-            m.put("servicos_contratados", c.servicosContratados());
-            m.put("data_contratacao", c.dataContratacao().toString());
+            m.put("linha", l.numeroLinha()); m.put("codigoCliente", c.codigoCliente());
+            m.put("nomeCliente", c.nomeCliente()); m.put("consultor", c.consultor());
+            m.put("segmento", c.segmento()); m.put("nivelCliente", c.nivelCliente());
+            m.put("faturamentoAnual", c.faturamentoAnual());
+            m.put("servicosContratados", c.servicosContratados());
+            m.put("dataContratacao", c.dataContratacao().toString());
             m.put("cidade", c.cidade()); m.put("uf", c.uf());
             return m;
         }).toList();
         try {
             var corpo = Map.of("arquivoNome", upload.arquivoNome(), "recebidas",
-                upload.totalValidadas() + upload.descartadas(), "invalidas", upload.descartadas(), "linhas", linhas);
+                upload.totalValidadas() + upload.descartadas(), "invalidas", upload.descartadas(),
+                "comAviso", 0, "linhas", linhas);
             var req = HttpRequest.newBuilder(url).timeout(Duration.ofSeconds(90))
                 .header("Content-Type", "application/json").header("X-ETL-Key", chave)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(json.writeValueAsBytes(corpo))).build();
@@ -64,4 +65,5 @@ public class PythonEtlService {
                 "Sem resposta do Python. Confira se o serviço está ligado e consulte o histórico antes de reenviar.");
         }
     }
+
 }
