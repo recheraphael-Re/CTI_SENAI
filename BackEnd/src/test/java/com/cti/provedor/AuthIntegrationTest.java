@@ -59,8 +59,6 @@ class AuthIntegrationTest {
         assertEquals(201, resposta.statusCode());
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
         var cadastro = json.readTree(resposta.body());
-        assertEquals("RA123", cadastro.get("matricula").asText());
-        assertEquals("CTI01", cadastro.get("turma").asText());
         assertFalse(cadastro.get("criadoEm").isNull());
         var aluno = repository.findByEmailIgnoreCase("aluno@example.com").orElseThrow();
         aluno.setStatus(StatusUsuario.ATIVO); repository.saveAndFlush(aluno);
@@ -68,7 +66,6 @@ class AuthIntegrationTest {
         assertEquals(200, login.statusCode());
         var dados = json.readTree(login.body());
         assertEquals(jwt.getExpiraEmSegundos(), dados.get("expiraEmSegundos").asLong());
-        assertEquals("RA123", dados.get("usuario").get("matricula").asText());
     }
     @Test void cadastroLoginEAprovacao() throws Exception {
         String cadastro = "{\"nome\":\"Ana\",\"email\":\"Ana@example.com\",\"senha\":\"senha123\",\"perfil\":\"ADMIN\",\"status\":\"ATIVO\"}";

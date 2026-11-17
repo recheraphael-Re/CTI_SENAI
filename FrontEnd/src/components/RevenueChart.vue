@@ -3,7 +3,7 @@
     <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
       {{ titulo }}
     </h3>
-    <Bar :data="chartData" :options="chartOptions" />
+    <div class="h-72 min-w-0"><Bar :data="chartData" :options="chartOptions" :aria-label="titulo" role="img" /></div>
   </div>
 </template>
 
@@ -50,14 +50,14 @@ const paleta = computed(() =>
         'rgba(139, 92, 246, 0.9)',   // brand
         'rgba(129, 140, 248, 0.9)',  // brand-accent-light
         'rgba(99, 102, 241, 0.9)',   // indigo-500
-        'rgba(34, 211, 238, 0.9)',   // cyan-400
+        'rgba(196, 181, 253, 0.9)',   // cyan-400
         'rgba(167, 139, 250, 0.9)'   // brand-light
       ]
     : [
         'rgba(124, 58, 237, 0.85)',
         'rgba(99, 102, 241, 0.85)',
         'rgba(79, 70, 229, 0.85)',
-        'rgba(6, 182, 212, 0.85)',
+        'rgba(167, 139, 250, 0.85)',
         'rgba(139, 92, 246, 0.85)'
       ]
 )
@@ -78,7 +78,7 @@ const chartData = computed(() => ({
 
 const chartOptions = computed(() => ({
   responsive: true,
-  maintainAspectRatio: true,
+  maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
     title: { display: false },

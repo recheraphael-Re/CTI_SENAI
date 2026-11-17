@@ -22,7 +22,7 @@ continua usando `usuarios`, perfis `USER`/`ADMIN` e status `ATIVO`.
 
 ## 2. Preparar o ambiente
 
-Requisitos: Java 21, Maven, Node compatível com o Vite instalado, Python 3.11 ou superior
+Requisitos: Java 25 LTS, Maven, Node compatível com o Vite instalado, Python 3.11 ou superior
 e PostgreSQL. As dependências Python foram verificadas com Python 3.14.
 As versões diretas usadas na verificação estão em `analytics-python/requirements-verificadas.txt`.
 

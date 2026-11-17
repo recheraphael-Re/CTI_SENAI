@@ -38,8 +38,6 @@ public class AuthService {
         }
         Usuario usuario = new Usuario();
         usuario.setNome(dados.nome().trim());
-        usuario.setMatricula(dados.matricula() == null ? null : dados.matricula().trim());
-        usuario.setTurma(dados.turma() == null ? null : dados.turma().trim());
         usuario.setEmail(email);
         usuario.setSenhaHash(encoder.encode(dados.senha())); // Armazena apenas o hash.
         usuario.setPerfil(PerfilUsuario.USER); // Cadastro público nunca define ADMIN.

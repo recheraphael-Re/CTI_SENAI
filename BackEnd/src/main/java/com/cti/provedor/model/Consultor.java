@@ -19,10 +19,6 @@ public class Consultor {
 @GeneratedValue (strategy = GenerationType.IDENTITY)
 @Column (name = "id_consultor")
 private Long idConsultor;
-@Column(name = "matricula", length = 50)
-private String matricula;
-public String getMatricula() { return matricula; }
-public void setMatricula(String matricula) { this.matricula = matricula; }
 
 // Cria coluna da tabela consultor
 

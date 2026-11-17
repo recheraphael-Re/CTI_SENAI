@@ -3,9 +3,7 @@ import jakarta.validation.constraints.*;
 public record CadastroRequest(
     @NotBlank @Size(max = 120) String nome,
     @NotBlank @Email @Size(max = 254) String email,
-    @NotBlank @Size(min = 8, max = 72) String senha,
-    @Size(max = 30) String matricula,
-    @Size(max = 60) String turma
+    @NotBlank @Size(min = 8, max = 72) String senha
 ) {
     @Override public String toString() { return "CadastroRequest[credenciais omitidas]"; }
 }

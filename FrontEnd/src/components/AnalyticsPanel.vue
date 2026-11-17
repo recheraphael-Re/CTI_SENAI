@@ -1,6 +1,6 @@
 <template>
-  <section class="space-y-6" aria-label="Análises salvas no banco">
-    <div class="flex flex-wrap items-center gap-3">
+  <section class="analytics-panel space-y-6" aria-label="Análises salvas no banco">
+    <div class="analytics-toolbar">
       <label for="lote-analytics">Importação salva</label>
       <select id="lote-analytics" v-model="selecionado" :disabled="store.carregando" @change="carregar"
         class="max-w-full rounded border p-2 dark:bg-slate-800">
@@ -9,11 +9,18 @@
           #{{ lote.id }} — {{ lote.arquivoNome }} — {{ lote.status }}
         </option>
       </select>
-      <button class="rounded border px-4 py-2 disabled:opacity-40" :disabled="store.carregando" @click="carregar">Atualizar</button>
+      <button class="analytics-refresh disabled:opacity-40" :disabled="store.carregando" @click="carregar">Atualizar</button>
     </div>
     <p v-if="store.carregando" role="status">Consultando importações no servidor...</p>
     <p v-else-if="store.erro" role="alert" class="rounded border border-rose-300 p-4 text-rose-700 dark:text-rose-300">{{ store.erro }}</p>
-    <p v-else-if="!store.resultado" class="rounded border p-4">Nenhuma importação processada no banco. Leia uma planilha e clique em “Processar e salvar no banco” na tela de upload.</p>
+    <section v-else-if="!store.resultado" class="analytics-empty">
+      <div class="analytics-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19h16M7 15v-4m5 4V5m5 10V8" stroke-linecap="round" /></svg>
+      </div>
+      <h3>Sua próxima análise começa com uma planilha</h3>
+      <p>Envie os dados da sua carteira e selecione “Processar e salvar no banco” para consultar os resultados aqui.</p>
+      <RouterLink to="/app/upload" class="analytics-refresh">Enviar planilha</RouterLink>
+    </section>
     <template v-else>
       <p class="text-sm text-slate-600 dark:text-slate-300">
         Fonte: PostgreSQL · lote #{{ lote.id }} · {{ lote.arquivoNome }} ·
@@ -25,7 +32,7 @@
       <template v-if="stats">
       <p class="text-sm text-slate-500 dark:text-slate-400">Análise gerada em {{ dataHora(store.resultado.geradoEm || stats.geradoEm) }} · {{ stats.resumo.consultores }} consultores.</p>
       <template v-if="!relatorio">
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="analytics-metrics grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <CartaoIndicador v-for="item in indicadores" :key="item.rotulo" v-bind="item" />
         </div>
         <RevenueChart titulo="Faturamento anual dos clientes por segmento" :rotulos="faturamento.rotulos" :valores="faturamento.valores" />
@@ -36,7 +43,7 @@
           <GraficoContagem titulo="Clientes por mês de contratação" descricao="Meses entre a primeira e a última contratação; intervalos sem registros aparecem com zero." :dados="serie('porMes', 'mes', 'clientes')" linha />
           <GraficoContagem titulo="Serviços contratados" descricao="Um cliente pode contratar mais de um serviço." :dados="serie('porServico', 'servico', 'contratos')" />
         </div>
-        <section v-if="stats.topClientes?.length" class="overflow-x-auto rounded-xl border p-5 dark:border-slate-700">
+        <section v-if="stats.topClientes?.length" class="analytics-card overflow-x-auto rounded-xl border p-5 dark:border-slate-700">
           <h3 class="mb-3 text-lg font-bold">Cinco maiores clientes por faturamento anual</h3>
           <table class="w-full text-left text-sm">
             <thead><tr><th v-for="titulo in ['Código', 'Cliente', 'Segmento', 'Nível', 'Faturamento anual']" :key="titulo" scope="col" class="p-3">{{ titulo }}</th></tr></thead>
@@ -45,7 +52,7 @@
             </tr></tbody>
           </table>
         </section>
-        <section class="rounded-xl border p-5 dark:border-slate-700">
+        <section class="analytics-card rounded-xl border p-5 dark:border-slate-700">
           <h3 class="text-lg font-bold">Análise e insights do lote</h3>
           <p class="mt-3">Desvio padrão amostral: {{ moeda(stats.resumo.desvioPadrao) }}. Quartis: {{ moeda(stats.resumo.q1) }} e {{ moeda(stats.resumo.q3) }}.</p>
           <p class="mt-3">{{ stats.correlacao?.interpretacao || 'Dados insuficientes ou constantes para calcular a correlação.' }}</p>
@@ -60,7 +67,7 @@
             class="mt-2 w-full rounded border p-3 dark:bg-slate-800" />
         </label>
         <p class="my-3 text-sm">{{ filtrados.length }} contratos exibidos. Um cliente aparece uma vez por serviço contratado; faturamento não deve ser somado por linha.</p>
-        <div class="overflow-x-auto rounded-xl border dark:border-slate-700">
+        <div class="analytics-table overflow-x-auto rounded-xl border dark:border-slate-700">
           <table class="w-full text-left text-sm">
             <caption class="sr-only">Clientes e serviços persistidos no lote selecionado</caption>
             <thead><tr><th v-for="titulo in ['Código', 'Empresa', 'Consultor', 'Segmento', 'Nível', 'Faturamento anual', 'Serviço', 'Contratação']" :key="titulo" scope="col" class="p-3">{{ titulo }}</th></tr></thead>
@@ -79,6 +86,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useDashboardStore } from '../stores/dashboard.js'
 import CartaoIndicador from './CartaoIndicador.vue'
 import RevenueChart from './RevenueChart.vue'

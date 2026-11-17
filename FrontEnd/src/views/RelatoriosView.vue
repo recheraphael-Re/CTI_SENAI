@@ -1,7 +1,12 @@
 <template>
-  <div class="mb-6 flex flex-wrap gap-3">
-    <button class="rounded border px-4 py-2" :aria-pressed="!previaLocal" @click="previaLocal = false">Relatório salvo no banco</button>
-    <button class="rounded border px-4 py-2" :aria-pressed="previaLocal" @click="previaLocal = true">Prévia e erros da planilha local</button>
+  <div class="analytics-page">
+  <header class="analytics-heading">
+    <h2>Relatórios da carteira</h2>
+    <p>Consulte os clientes, serviços e resultados das suas importações.</p>
+  </header>
+  <div class="analytics-tabs" aria-label="Fonte dos dados">
+    <button class="analytics-tab" :class="{ active: !previaLocal }" :aria-pressed="!previaLocal" @click="previaLocal = false">Relatório salvo no banco</button>
+    <button class="analytics-tab" :class="{ active: previaLocal }" :aria-pressed="previaLocal" @click="previaLocal = true">Prévia e erros da planilha local</button>
   </div>
   <AnalyticsPanel v-if="!previaLocal" relatorio />
   <!-- RELATÓRIOS — consulta da base de clientes tratada -->
@@ -138,6 +143,7 @@
       {{ clientesFiltrados.length }} de {{ clientesExibidos.length }} linhas.
     </p>
   </section>
+  </div>
 </template>
 
 <script setup>

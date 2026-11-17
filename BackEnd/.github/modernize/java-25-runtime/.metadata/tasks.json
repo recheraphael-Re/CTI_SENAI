@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Java 25 runtime modernization tasks for the CTI_SENAI backend.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-java-25-runtime",
+      "description": "Upgrade the backend runtime/build target to Java 25. Addresses assessment issue azure-java-version-02000 (Java 21 detected).",
+      "reason": "Java 25 is the latest released LTS as of 2026-11-12 and is the requested backend runtime target.",
+      "requirements": "Move the backend Maven compile target and runtime to Java 25. Verify compatibility of the existing Spring Boot 3.5.6 and its managed Spring Framework version with Java 25. Retain the current framework versions if compatible; if a framework change is required for Java 25, make only the minimum compatibility changes needed and preserve application behavior. Keep the task limited to the backend and do not address unrelated assessment findings.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-align-java-25-container-and-verify",
+      "description": "Align backend container/developer Java-version references and verify the Java 25 build. Addresses assessment issue azure-java-version-02000 (Java 21 detected).",
+      "reason": "The backend Docker build/runtime stages and README currently identify Java 21, so the end-to-end runtime target must be consistent.",
+      "requirements": "Update only backend Java-version configuration confirmed in the repository, including the Java 21 build and runtime images in deploy/Dockerfile.backend and the Java 21 statement in BackEnd/README.md. Do not change frontend or Python container configurations, and do not invent developer or CI files that are not present. After these updates, run the focused backend Maven build and existing unit tests using JDK 25; verify the backend container build and Java runtime version when container tooling is available. Report any environment limitation rather than claiming an unrun check passed.",
+      "dependencies": [
+        "001-upgrade-java-25-runtime"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "java-25-runtime",
+    "projectName": "CTI_SENAI BackEnd",
+    "language": "java",
+    "createdAt": "2026-11-13T01:34:08Z",
+    "version": "1.0"
+  }
+}

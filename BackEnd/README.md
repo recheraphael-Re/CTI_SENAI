@@ -1,6 +1,6 @@
 # BackEnd CTI SENAI
 
-API Spring Boot 3.5.6 / Java 21 com PostgreSQL, Spring Security, BCrypt e JWT.
+API Spring Boot 3.5.6 / Java 25 LTS com PostgreSQL, Spring Security, BCrypt e JWT.
 
 ## Executar no PowerShell
 

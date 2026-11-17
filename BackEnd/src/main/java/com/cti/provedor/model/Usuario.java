@@ -15,18 +15,10 @@ public class Usuario {
     @Column(nullable = false, length = 254)
     private String email;
 
-    @Column(length = 30)
-    private String matricula;
-    @Column(length = 60)
-    private String turma;
     private java.time.Instant criadoEm;
 
     @PrePersist
     void registrarCriacao() { if (criadoEm == null) criadoEm = java.time.Instant.now(); }
-    public String getMatricula() { return matricula; }
-    public void setMatricula(String matricula) { this.matricula = matricula; }
-    public String getTurma() { return turma; }
-    public void setTurma(String turma) { this.turma = turma; }
     public java.time.Instant getCriadoEm() { return criadoEm; }
 
     @Column(nullable = false)

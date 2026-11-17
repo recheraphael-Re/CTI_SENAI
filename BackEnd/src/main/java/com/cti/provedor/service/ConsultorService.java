@@ -23,8 +23,6 @@ public class ConsultorService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome obrigatorio; ate 150 caracteres");
         if (dados.getEmail() == null || dados.getEmail().isBlank() || dados.getEmail().length() > 150)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email obrigatorio; ate 150 caracteres");
-        if (dados.getMatricula() != null && dados.getMatricula().length() > 50)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Matricula: ate 50 caracteres");
         if (dados.getTelefone() != null && dados.getTelefone().length() > 30)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Telefone: ate 30 caracteres");
     }
@@ -35,7 +33,7 @@ public class ConsultorService {
     }
     private void copiar(Consultor alvo, Consultor dados) {
         alvo.setNome(dados.getNome().trim()); alvo.setEmail(dados.getEmail().trim().toLowerCase(Locale.ROOT));
-        alvo.setTelefone(dados.getTelefone()); alvo.setMatricula(dados.getMatricula());
+        alvo.setTelefone(dados.getTelefone());
     }
     @Transactional public Consultor criar(Consultor dados) {
         validar(dados);

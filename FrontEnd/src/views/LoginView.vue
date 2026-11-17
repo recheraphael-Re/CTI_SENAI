@@ -6,7 +6,7 @@
         Bem-vindo de volta!
       </h2>
       <p class="text-center text-slate-600 dark:text-slate-400 mt-1 mb-6">
-        Entre com sua conta aprovada pelo administrador.
+        Acesse a carteira de clientes e as análises da sua empresa.
       </p>
 
       <p v-if="route.query.motivo === 'sessao'" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">Sua sessão precisa ser validada. Entre novamente.</p>
@@ -20,7 +20,7 @@
             id="email"
             v-model="email" required autocomplete="username" maxlength="254"
             type="email"
-            placeholder="usuario@cti.com.br"
+            placeholder="seunome@empresa.com.br"
             class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-slate-900 dark:text-slate-100 outline-none focus:border-brand"
           />
         </div>

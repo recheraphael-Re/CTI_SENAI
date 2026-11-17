@@ -3,7 +3,7 @@
     <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:p-8">
       <h2 class="text-center text-2xl font-bold text-slate-900 dark:text-slate-100">Solicitar acesso</h2>
       <p class="mt-2 mb-6 text-center text-sm text-slate-600 dark:text-slate-400">
-        Solicite sua conta e aguarde a aprovação do administrador.
+        Solicite acesso para acompanhar a carteira de clientes da sua empresa. O administrador analisará seu cadastro.
       </p>
 
       <div v-if="concluido" role="status" class="mb-6 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
@@ -17,7 +17,7 @@
         </div>
         <div>
           <label for="cadastro-email" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">E-mail corporativo</label>
-          <input id="cadastro-email" v-model="email" required type="email" maxlength="254" autocomplete="email" placeholder="usuario@cti.com.br" class="campo" />
+          <input id="cadastro-email" v-model="email" required type="email" maxlength="254" autocomplete="email" placeholder="seunome@empresa.com.br" class="campo" />
         </div>
         <div>
           <label for="cadastro-senha" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Senha</label>
@@ -27,14 +27,6 @@
         <div>
           <label for="cadastro-confirmacao" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Confirme a senha</label>
           <input id="cadastro-confirmacao" v-model="confirmacao" required :type="mostrarSenha ? 'text' : 'password'" autocomplete="new-password" class="campo" />
-        </div>
-        <div>
-          <label for="cadastro-matricula" class="mb-1 block text-sm font-semibold">Matrícula (opcional)</label>
-          <input id="cadastro-matricula" v-model="matricula" maxlength="30" class="campo" />
-        </div>
-        <div>
-          <label for="cadastro-turma" class="mb-1 block text-sm font-semibold">Turma (opcional)</label>
-          <input id="cadastro-turma" v-model="turma" maxlength="60" class="campo" />
         </div>
         <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
           <input v-model="mostrarSenha" type="checkbox" class="accent-brand" /> Mostrar senhas
@@ -58,8 +50,6 @@ import { RouterLink } from 'vue-router'
 import api, { mensagemErro } from '../services/api.js'
 
 const nome = ref('')
-const matricula = ref('')
-const turma = ref('')
 const email = ref('')
 const senha = ref('')
 const confirmacao = ref('')
@@ -83,8 +73,7 @@ async function cadastrar() {
 
   carregando.value = true
   try {
-    await api.post('/auth/register', { nome: nome.value.trim(), email: email.value.trim(), senha: senha.value,
-      matricula: matricula.value.trim(), turma: turma.value.trim() })
+    await api.post('/auth/register', { nome: nome.value.trim(), email: email.value.trim(), senha: senha.value })
     concluido.value = true
   } catch (e) { erro.value = mensagemErro(e) }
   finally {

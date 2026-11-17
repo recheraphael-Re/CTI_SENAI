@@ -21,13 +21,13 @@ import { useTheme } from '../composables/useTheme.js'
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend)
 const props = defineProps({ titulo: String, descricao: String, dados: { type: Object, required: true }, linha: Boolean })
 const { isDark } = useTheme()
-const chartData = computed(() => ({ labels: props.dados.rotulos, datasets: [{ label: 'Quantidade', data: props.dados.valores, backgroundColor: '#8b5cf6', borderColor: '#8b5cf6', tension: 0 }] }))
+const chartData = computed(() => ({ labels: props.dados.rotulos, datasets: [{ label: 'Quantidade', data: props.dados.valores, backgroundColor: isDark.value ? '#a78bfa' : '#7c3aed', borderColor: isDark.value ? '#a78bfa' : '#7c3aed', borderRadius: 6, borderSkipped: false, tension: 0.25 }] }))
 const options = computed(() => ({
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    x: { ticks: { color: isDark.value ? '#cbd5e1' : '#475569' } },
-    y: { beginAtZero: true, ticks: { precision: 0, color: isDark.value ? '#cbd5e1' : '#475569' } }
+    x: { grid: { display: false }, ticks: { color: isDark.value ? '#cbd5e1' : '#475569' } },
+    y: { beginAtZero: true, grid: { color: isDark.value ? '#334155' : '#ede9fe' }, ticks: { precision: 0, color: isDark.value ? '#cbd5e1' : '#475569' } }
   }
 }))
 </script>

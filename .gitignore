@@ -7,6 +7,9 @@ package-lock.json
 **/__pycache__/
 analytics-python/.env
 .env.deploy
+.env
 
 # Arquivos temporarios da geracao e revisao do guia
 /tmp/guia-apresentacao/
+.neon
+.env.local

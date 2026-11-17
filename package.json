@@ -10,6 +10,8 @@
     "setup": "npm --prefix FrontEnd install"
   },
   "dependencies": {
+    "@neon/config": "^1.14.1",
+    "@neon/env": "^2.1.4",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }
