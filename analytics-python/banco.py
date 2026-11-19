@@ -1,4 +1,4 @@
-"""Banco: GRAVA no PostgreSQL (Azure) os clientes, contratos e o JSON do dashboard. As linhas chegam do backend."""
+"""Grava no PostgreSQL os clientes, contratos e indicadores do dashboard."""
 from __future__ import annotations
 import json
 import logging
