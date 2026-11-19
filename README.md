@@ -31,9 +31,8 @@ flowchart TB
         Gravacao["banco.py · SQLAlchemy<br/>Cria o lote e grava o resultado"]
     end
 
-    subgraph Banco["PostgreSQL · compatível com Neon"]
-        Cadastros[("public<br/>Usuários e cadastros da aplicação")]
-        Analytics[("cti_analytics<br/>Lotes, clientes, contratos e estatísticas")]
+    subgraph Dados["Banco de dados"]
+        Banco[("PostgreSQL (Neon)<br/>public · cti_analytics")]
     end
 
     Usuario -->|"Acessa a conta"| Sessao
@@ -42,12 +41,15 @@ flowchart TB
     Sessao <-->|"/auth e /api/admin/usuarios"| Auth
     Planilha <-->|"POST /api/uploads/validadas · JWT"| Validacao
     Painel <-->|"Consultas /api/dashboard · JWT"| Dashboard
-    Auth -->|"Lê e grava contas via JPA"| Cadastros
     Validacao --> ClienteETL
     ClienteETL <-->|"POST /etl · X-ETL-Key"| Etl
     Etl --> Analise --> Gravacao
-    Gravacao -->|"Persiste o lote e os resultados"| Analytics
-    Dashboard -->|"Consulta o lote e os resultados salvos"| Analytics
+    Auth -->|"Lê e grava contas em public"| Banco
+    Gravacao -->|"Grava lotes e resultados em cti_analytics"| Banco
+    Dashboard -->|"Consulta lotes e resultados em cti_analytics"| Banco
+
+    classDef banco fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
+    class Banco banco
 ```
 
 1. O Vue lê a planilha no navegador e mostra a prévia com as linhas válidas e os erros. Ao confirmar, envia ao Spring as linhas aprovadas e a contagem das descartadas.
@@ -57,7 +59,7 @@ flowchart TB
 
 ## Modelo de dados da importação
 
-O esquema `cti_analytics` guarda os dados importados e suas estatísticas. O esquema `public` reúne as contas em `usuarios` e as tabelas acessadas pelos CRUDs Java.
+O PostgreSQL no Neon reúne os dois esquemas. `cti_analytics` guarda os dados importados e suas estatísticas. `public` reúne as contas em `usuarios` e as tabelas acessadas pelos CRUDs Java.
 
 ```mermaid
 erDiagram
