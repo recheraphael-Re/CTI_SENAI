@@ -2,7 +2,7 @@
 title: Guia de estudos do CTI Insights
 subtitle: Preparação para apresentação do programa e prova
 author: Material de apoio ao estudante
-date: 12 de novembro de 2026
+date: 16 de novembro de 2026
 lang: pt-BR
 ---
 
@@ -12,11 +12,11 @@ lang: pt-BR
 
 Este guia explica o seu projeto CTI Insights a partir dos arquivos existentes no repositório. O objetivo é conseguir acompanhar o caminho dos dados, justificar as escolhas do programa e demonstrar seu funcionamento sem depender de decorar código. A referência é a versão local após a adaptação ao fluxo do GitHub da professora: o Java valida e encaminha; o Python cria o lote, calcula e grava as análises.
 
-O programa transforma planilhas de clientes em informações para consulta. O navegador lê o arquivo e mostra problemas; o backend verifica novamente os dados; o Python produz estatísticas e insights; o PostgreSQL guarda o resultado; e o dashboard consulta as análises salvas. Login e aprovação de usuários controlam o acesso.
+O programa atende empresas e consultores que precisam transformar planilhas de clientes em informações para consulta. O navegador lê o arquivo e mostra problemas; o backend verifica novamente os dados; o Python produz estatísticas e insights; o PostgreSQL guarda o resultado; e o dashboard consulta as análises salvas. Login e aprovação de usuários controlam o acesso.
 
 **Como estudar:** leia primeiro as seções 1 a 5; depois siga o fluxo de importação e as etapas de Python e banco. Use o roteiro de apresentação para ensaiar. Resolva o simulado antes de consultar o gabarito. Os trechos identificados como didáticos são simplificações, não substitutos dos arquivos do projeto.
 
-**Escopo da verificação:** os testes locais anteriores confirmaram 37 testes Java e sete Python, com o fluxo de amostra executado em banco isolado. Isso não comprova que uma instância do Azure ou Neon esteja disponível neste momento. Este guia não contém senhas, tokens reais ou valores do seu arquivo `.env`.
+**Verificação da atualização de 16 de novembro de 2026:** o projeto passou a usar o BancoCti no Neon. Foram confirmadas 14 tabelas da aplicação, a remoção dos campos acadêmicos e o funcionamento dos logins de administrador e usuário. Os 37 testes Java passaram após a alteração dos modelos. Os sete testes Python citados na versão anterior pertencem à verificação anterior. As configurações deste guia usam valores ilustrativos para preservar as credenciais.
 
 # 1 Visão geral do programa
 
@@ -572,9 +572,13 @@ Esses valores são da amostra específica. Não use o mesmo gabarito para outra 
 
 # 12 Banco de dados e transações
 
-## 12.1 PostgreSQL Neon Azure e schema
+## 12.1 BancoCti no Neon e organização por schema
 
-PostgreSQL é o sistema de banco. Neon e Azure são opções de hospedagem. SQLAlchemy e psycopg são bibliotecas de acesso; não substituem o servidor. Um schema é um agrupamento de objetos dentro de um banco.
+O projeto utiliza PostgreSQL hospedado no Neon. BancoCti é o nome do projeto exibido no painel do Neon. Dentro dele, a conexão atual acessa o banco PostgreSQL chamado `neondb`, na branch `production`. O projeto Neon tem o identificador `silent-firefly-81470515` e pertence à organização `org-little-bird-29788363`.
+
+Projeto, banco e schema representam níveis diferentes. No painel, abra BancoCti, selecione `production` e escolha `neondb` no SQL Editor. Dentro de `neondb`, a aplicação utiliza os schemas `public` e `cti_analytics`. SQLAlchemy e psycopg fazem o acesso a esse servidor.
+
+O destino atual é BancoCti. Configurações antigas de Azure ou do projeto Neon chamado CTI_SENAI precisam ser substituídas pelo destino atual nos ambientes em que a aplicação for executada.
 
 Seu fluxo de analytics usa o schema `cti_analytics`. `config.py` define o `search_path` da conexão Python para que comandos como `INSERT INTO cliente` atinjam a tabela desse schema. O Java usa nomes qualificados, como `cti_analytics.cliente`, nas consultas de análise.
 
@@ -619,6 +623,113 @@ A criação do lote acontece antes, em transação própria. Por isso, após fal
 Parâmetros como `:id` e `:nome` separam valores de instruções SQL. Concatenar texto recebido do usuário diretamente em SQL pode permitir SQL injection. Os nomes de tabela usados internamente no código precisam continuar controlados pelo próprio programa.
 
 `migrar.py` lê `BackEnd/src/main/resources/db/analytics.sql` e executa a preparação manual de `cti_analytics`. Não execute migração em outro banco por engano. Essa etapa usa a configuração local de conexão e tem efeito real; ela não é equivalente a rodar um teste com SQLite.
+
+## 12.7 As 14 tabelas atuais e o perfil empresarial
+
+O schema `public` contém sete tabelas usadas pelo backend Java. O schema `cti_analytics` contém sete tabelas usadas no processamento dos lotes e nas consultas do dashboard.
+
+| Tabela em `public` | Finalidade |
+|---|---|
+| `usuarios` | Contas de acesso, hash da senha, perfil, status e data de criação |
+| `consultor` | Cadastro de consultores com nome, e-mail, hash de senha e telefone |
+| `cliente` | Cadastro de empresas clientes vinculado ao consultor |
+| `servico` | Serviços e categorias mantidos pelo backend |
+| `contrato` | Relacionamento entre cliente e serviço |
+| `insight` | Registros de insights vinculados ao cliente e ao contrato |
+| `telemetria` | Eventos e resultados de acompanhamento |
+
+As sete tabelas de `cti_analytics` estão descritas na seção 12.2. Existem nomes iguais nos dois schemas, como `public.cliente` e `cti_analytics.cliente`. Use o nome completo nas consultas do SQL Editor para conferir a tabela desejada.
+
+O sistema atende empresas e consultores. Foram removidas `public.consultor.matricula`, `public.usuarios.matricula` e `public.usuarios.turma`. Os modelos Java, os DTOs e o formulário de cadastro acompanham essa mudança. Nome, e-mail corporativo e senha são os dados principais da solicitação de acesso.
+
+O login usa `public.usuarios`. Cadastrar uma linha em `public.consultor` alimenta o cadastro de consultores. A conta que entra na aplicação precisa existir em `usuarios`, ter senha BCrypt válida e status `ATIVO`. Os perfis atuais são `ADMIN` e `USER`; os status são `PENDENTE`, `ATIVO` e `BLOQUEADO`.
+
+## 12.8 Conexões locais e variáveis de ambiente
+
+O frontend envia pedidos HTTP ao Java. A senha do banco é utilizada pelos serviços do servidor. O Java e o Python precisam apontar para o mesmo banco e ter a mesma chave ETL.
+
+| Arquivo local | Configuração utilizada |
+|---|---|
+| `.neon` | Organização, projeto BancoCti e branch `production` |
+| `.env` e `.env.local` na raiz | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` e identificação da branch |
+| `BackEnd/.env` | `DB_URL` em formato JDBC, `DB_USER` ou `DB_USERNAME`, `DB_PASSWORD` e `ETL_API_KEY` |
+| `analytics-python/.env` | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE` e `ETL_API_KEY` |
+
+Esses arquivos locais estão ignorados pelo Git. O Spring lê `BackEnd/.env`; o Python lê `analytics-python/.env`. Alterar somente `DATABASE_URL` na raiz não atualiza automaticamente as configurações consumidas por esses dois serviços.
+
+Exemplo ilustrativo para o backend, substituindo os marcadores pelos valores do painel autorizado.
+
+```properties
+DB_URL=jdbc:postgresql://HOST_POOLER:5432/neondb?sslmode=require&channelBinding=require
+DB_USER=USUARIO_DO_NEON
+DB_PASSWORD=SENHA_DO_NEON
+```
+
+Exemplo correspondente para o Python.
+
+```properties
+DB_HOST=HOST_POOLER
+DB_PORT=5432
+DB_NAME=neondb
+DB_USER=USUARIO_DO_NEON
+DB_PASSWORD=SENHA_DO_NEON
+DB_SSLMODE=require
+```
+
+`sslmode=require` exige uma conexão criptografada. O endereço com `-pooler` identifica o acesso com pool de conexões, usado no tráfego normal da aplicação. A variável `DATABASE_URL_UNPOOLED` guarda a conexão direta para tarefas de administração e migração. Os exemplos usam marcadores e precisam ser preenchidos antes de uma execução real.
+
+## 12.9 Scripts da migração e conferência no Neon
+
+| Arquivo SQL | Uso |
+|---|---|
+| `BackEnd/src/main/resources/db/neon-public.sql` | Criação das sete tabelas atuais em `public` |
+| `BackEnd/src/main/resources/db/analytics.sql` | Criação das sete tabelas em `cti_analytics` |
+| `BackEnd/src/main/resources/db/perfil-empresarial.sql` | Remoção dos campos de matrícula e turma dos cadastros |
+
+As tabelas do BancoCti já foram preparadas. A criação usa `IF NOT EXISTS`, que permite repetir a criação sem apagar as tabelas. Ele não modifica automaticamente uma coluna antiga. A alteração de perfil empresarial foi aplicada por um script próprio, acompanhada da atualização dos modelos Java.
+
+Execute esta consulta no SQL Editor do BancoCti para conferir o destino e a estrutura.
+
+```sql
+SELECT current_database() AS banco;
+
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_type = 'BASE TABLE'
+  AND table_schema IN ('public', 'cti_analytics')
+  AND table_name <> 'playing_with_neon'
+ORDER BY table_schema, table_name;
+```
+
+O primeiro resultado esperado é `neondb`. A listagem deve mostrar 14 tabelas da aplicação, sendo sete de cada schema. A eventual tabela `playing_with_neon` é um exemplo do Neon e foi excluída dessa contagem.
+
+Confira também a remoção dos campos acadêmicos.
+
+```sql
+SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name IN ('usuarios', 'consultor')
+  AND column_name IN ('matricula', 'turma');
+```
+
+Resultado esperado após a atualização: nenhuma linha. Para demonstrar as contas e seus perfis, selecione somente os campos necessários.
+
+```sql
+SELECT id, nome, email, perfil, status
+FROM public.usuarios
+ORDER BY id;
+
+SELECT id_consultor, nome, email, telefone
+FROM public.consultor
+ORDER BY id_consultor;
+```
+
+## 12.10 Como explicar a migração na apresentação
+
+“O CTI Insights usa o projeto BancoCti no Neon, com PostgreSQL. O banco se chama neondb e possui dois schemas. Public reúne os cadastros do backend, enquanto cti_analytics reúne lotes, clientes processados e estatísticas. Atualizamos as conexões do Java e do Python para o mesmo destino, testamos a estrutura e conferimos os logins. Também removemos matrícula e turma para adequar os cadastros ao uso empresarial.”
+
+A criação da estrutura prepara tabelas e relacionamentos. A transferência de registros de um banco antigo exige uma etapa própria de exportação, importação e conferência. A preparação do BancoCti descrita nesta atualização abrangeu a estrutura e as contas verificadas na aplicação. Para comprovar uma importação, consulte o lote efetivamente processado e compare seu resultado com a interface.
 
 # 13 Dashboard relatórios e gráficos
 
@@ -674,7 +785,7 @@ node --version
 npm --version
 ```
 
-São esperados números de versão, e não mensagens de comando inexistente. O Java do projeto é 21. Para compatibilidade do frontend, confira também a versão de Node exigida pelo Vite instalado. Não altere versões antes da apresentação sem testar o conjunto.
+São esperados números de versão, e não mensagens de comando inexistente. O Java exigido pelo `pom.xml` atual é 25. O script `BackEnd/iniciar.ps1` seleciona o JDK 25 instalado, mesmo quando `JAVA_HOME` aponta para Java 21. Para compatibilidade do frontend, confira também a versão de Node exigida pelo Vite instalado. Não altere versões antes da apresentação sem testar o conjunto.
 
 ## 14.2 Preparar Python a partir da raiz
 
@@ -710,9 +821,9 @@ Preencha a configuração local com os dados autorizados do banco e a chave do E
 ## 14.4 Iniciar Java e frontend em outros terminais
 
 ```powershell
-# Terminal do backend:
-cd C:\Users\Instrutor\CTI_SENAI\BackEnd
-mvn spring-boot:run
+# Terminal do backend, a partir da raiz:
+cd C:\Users\Instrutor\CTI_SENAI
+powershell -ExecutionPolicy Bypass -File .\BackEnd\iniciar.ps1
 ```
 
 ```powershell
@@ -722,7 +833,7 @@ npm install
 npm run dev
 ```
 
-Instalação não precisa ser repetida em todo início quando as dependências já estão preparadas. O Spring deve indicar início da aplicação; o Vite informa o endereço local, normalmente `http://localhost:5173`. A porta efetiva pode variar se estiver ocupada ou configurada de outro modo.
+Instalação não precisa ser repetida em todo início quando as dependências já estão preparadas. O script deve informar `Iniciando com JDK 25`; o Spring deve indicar início da aplicação; o Vite informa o endereço local, normalmente `http://localhost:5173`. A porta efetiva pode variar se estiver ocupada ou configurada de outro modo.
 
 ## 14.5 Testar Python sem banco
 
@@ -761,7 +872,9 @@ npm test
 
 Python deve terminar com `OK`; Maven deve indicar testes aprovados e construção bem-sucedida; o teste JavaScript mostra resumo de casos aprovados. A quantidade depende da versão dos arquivos. O teste de fluxo Java depende de ferramentas e amostras locais; confira se foi executado ou pulado, não apenas se o comando terminou.
 
-## 14.7 Conferir persistência no DBeaver
+## 14.7 Conferir persistência no SQL Editor do Neon ou no DBeaver
+
+No Neon, abra BancoCti, branch `production`, banco `neondb`. No DBeaver, use o mesmo banco de destino. A consulta da seção 12.9 confere a estrutura; as consultas abaixo conferem os dados de um lote processado.
 
 ```sql
 SELECT id, arquivo_nome, status, total_linhas,
@@ -799,7 +912,12 @@ Para a planilha de exemplo: status `PROCESSADO`, 32 clientes, 61 contratos e mé
 | Uvicorn não encontra `api` | Pasta de execução incorreta | Execute dentro de `analytics-python` |
 | POST do upload falha com Python desligado | Backend não consegue chamar `/etl` | Ligue Python e confira `ETL_URL` |
 | Chave interna recusada | Chaves ausentes ou diferentes | Compare a configuração local, sem divulgar valores |
-| Banco inacessível | Rede, endereço, credencial ou TLS | Execute `testar_conexao.py` e confira configuração e logs |
+| Banco inacessível | Rede, endereço, credencial ou TLS | Execute `testar_conexao.py` e confira se Java e Python usam o BancoCti |
+| `UnsupportedClassVersionError`, versões 69 e 65 | Código compilado em Java 25 iniciado com Java 21 | Execute `BackEnd/iniciar.ps1`, que seleciona o JDK exigido no `pom.xml` |
+| `SocketTimeoutException` na conexão com Neon | A comunicação PostgreSQL ou a negociação TLS expirou | Confira host, porta TCP 5432 e rede. Compare com outra conexão autorizada, como o hotspot do celular |
+| SQL Editor funciona, mas Java ou Python não conecta | HTTPS do painel acessível e conexão PostgreSQL indisponível | O painel usa HTTPS e a aplicação usa PostgreSQL na porta 5432; teste a conectividade da aplicação |
+| Tabela aparece vazia no editor | Schema ou banco diferente do consultado pela aplicação | Confirme BancoCti, `production`, `neondb` e o nome qualificado da tabela |
+| Consultor cadastrado não consegue entrar | O registro está em `public.consultor` | Confira a conta em `public.usuarios`, o hash válido e o status `ATIVO` |
 | Tabela de analytics não existe | Schema ainda não preparado | Confira conexão e a necessidade de executar `migrar.py` |
 | Usuário cadastra mas não entra | Status pendente ou bloqueado | Verifique a liberação pelo administrador |
 | Erro 401 após período de uso | Token ausente, inválido ou expirado | Entre novamente e confira a chamada no Network |
@@ -909,6 +1027,13 @@ Tenha a planilha, os comandos e os resultados esperados acessíveis. Uma boa apr
 33. Provoque uma falha de chave apenas em ambiente de teste e explique a resposta esperada, sem divulgar a chave real.
 34. Compare o número de erros com o de linhas inválidas e explique por que eles podem divergir.
 
+## 17.4 Perguntas sobre o BancoCti
+
+35. Qual é a diferença entre BancoCti, neondb e cti_analytics?
+36. Por que cadastrar um consultor não basta para entrar na aplicação?
+37. Como demonstrar que as 14 tabelas e a remoção dos campos acadêmicos estão corretas?
+38. Por que o painel do Neon pode abrir enquanto a conexão do backend expira?
+
 # 18 Gabarito comentado
 
 ## 18.1 Respostas das questões conceituais
@@ -950,6 +1075,13 @@ Tenha a planilha, os comandos e os resultados esperados acessíveis. Uma boa apr
 32. Use JOIN de contrato com cliente e filtro `cliente.lote_id`, como na seção de comandos.
 33. O Python deve recusar autenticação interna; o backend traduz a falha para a interface. Confira logs e status sem expor valores.
 34. Uma linha pode conter mais de uma ocorrência de erro.
+
+## 18.3 Respostas sobre o BancoCti
+
+35. BancoCti é o projeto do Neon; neondb é o banco PostgreSQL acessado; cti_analytics é um schema que organiza as tabelas de processamento nesse banco. A branch atual é production.
+36. A autenticação consulta public.usuarios e verifica BCrypt, perfil e status. O cadastro de consultores é utilizado no domínio de negócios.
+37. No SQL Editor, conferir current_database(), listar as tabelas em public e cti_analytics e consultar information_schema.columns para verificar a ausência de matricula e turma nas tabelas alteradas.
+38. São comunicações diferentes. O painel funciona por HTTPS; JDBC e psycopg dependem de conexão PostgreSQL com TLS na porta 5432. Uma restrição nessa comunicação pode afetar a aplicação.
 
 # 19 Plano de revisão e leitura do código
 
@@ -1021,9 +1153,13 @@ Em cada sessão, leia o trecho real do programa, faça uma pequena anotação co
 - [ ] Conferi as configurações sem exibir segredos.
 - [ ] Preparei os três terminais e sei a pasta de cada comando.
 - [ ] Executei os testes e verifiquei se o teste integrado não foi pulado.
+- [ ] Confirmei o projeto BancoCti, a branch production e o banco neondb.
+- [ ] Conferi as 14 tabelas e a ausência dos campos acadêmicos removidos.
+- [ ] Sei diferenciar a conta em usuarios do cadastro em consultor.
+- [ ] Iniciei o backend com Java 25 e conferi a conexão do Python.
 - [ ] Conferi o mesmo lote no banco e no dashboard.
 - [ ] Sei informar quando uso execução anterior ou dados de exemplo.
 - [ ] Preenchi meu nome, RA e turma na cópia de entrega.
 - [ ] Revisei os arquivos alterados e as exigências específicas da professora.
 
-**Base deste guia:** leitura dos arquivos locais citados, das stores, dos services Java, dos arquivos Python, do SQL e das configurações de execução. O documento descreve a implementação observada em 12 de novembro de 2026. Se o código mudar, revise o fluxo e os comandos correspondentes antes da apresentação.
+**Base deste guia:** leitura dos arquivos locais citados, das stores, dos services Java, dos arquivos Python, do SQL e das configurações de execução. O documento descreve a implementação observada em 12 de novembro de 2026, com atualização do banco, do perfil empresarial e dos comandos de inicialização em 16 de novembro de 2026. Se o código mudar, revise o fluxo e os comandos correspondentes antes da apresentação.
