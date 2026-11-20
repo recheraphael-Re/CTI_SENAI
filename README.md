@@ -2,6 +2,10 @@
 
 Projeto integrador do SENAI para importar planilhas comerciais da Provedor CTI, revisar os registros e acompanhar indicadores da carteira por lote.
 
+## Diagrama de arquitetura
+
+O diagrama mostra as telas Vue, os endpoints Spring, o ETL Python e as conexões com o PostgreSQL no Neon. [Ver diagrama em PNG](docs/diagrama-cti-neon.png) · [Abrir arquivo editável no draw.io](docs/diagrama-cti-neon.drawio)
+
 ## Fluxo de dados
 
 ```mermaid
@@ -9,7 +13,7 @@ flowchart LR
     Planilha["Planilha XLSX, XLS ou CSV"] --> Vue["Vue · envio e revisão"]
     Vue -->|"Linhas válidas"| Java["Spring Boot · revalidação"]
     Java -->|"POST /etl"| Python["FastAPI · limpeza e estatística"]
-    Python -->|"Grava lotes e resultados"| Postgres[("PostgreSQL")]
+    Python -->|"Grava lotes e resultados"| Postgres[("PostgreSQL no Neon")]
     Java -->|"Lê resultados e gerencia contas"| Postgres
     Java -->|"Indicadores e contratos"| Dashboard["Vue · dashboard"]
 ```
