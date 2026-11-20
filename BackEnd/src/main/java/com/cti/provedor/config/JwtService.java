@@ -8,7 +8,6 @@ import io.jsonwebtoken.io.Decoders;
 import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service // Responsável por assinar e validar JWTs.
@@ -16,12 +15,12 @@ public class JwtService {
     private final SecretKey chave;
     private final long expiracaoMinutos;
 
-    public JwtService(@Value("${app.jwt.secret-base64}") String segredoBase64,
-                      @Value("${app.jwt.expiration-minutes:60}") long expiracaoMinutos) {
+    public JwtService(AppProperties properties) {
+        var jwt = properties.jwt();
         // HS256 exige ao menos 256 bits (32 bytes) de chave aleatória.
-        this.chave = Keys.hmacShaKeyFor(Decoders.BASE64.decode(segredoBase64));
-        if (expiracaoMinutos <= 0) throw new IllegalArgumentException("Expiracao JWT deve ser positiva");
-        this.expiracaoMinutos = expiracaoMinutos;
+        this.chave = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwt.secretBase64()));
+        if (jwt.expirationMinutes() <= 0) throw new IllegalArgumentException("Expiracao JWT deve ser positiva");
+        this.expiracaoMinutos = jwt.expirationMinutes();
     }
 
     public long getExpiraEmSegundos() { return expiracaoMinutos * 60; }

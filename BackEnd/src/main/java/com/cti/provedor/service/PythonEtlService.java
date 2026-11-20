@@ -1,13 +1,14 @@
 package com.cti.provedor.service;
 
 import com.cti.provedor.config.ApiException;
+import com.cti.provedor.config.AppProperties;
 import com.cti.provedor.dto.UploadDtos.ResultadoUpload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
 import java.util.*;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,12 @@ public class PythonEtlService {
     private final HttpClient http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
         .connectTimeout(Duration.ofSeconds(5)).build();
 
-    public PythonEtlService(@Value("${app.etl.url:http://127.0.0.1:8000/etl}") String url,
-            @Value("${app.etl.key:}") String chave, ObjectMapper json) {
+    @Autowired
+    public PythonEtlService(AppProperties properties, ObjectMapper json) {
+        this(properties.etl().url(), properties.etl().key(), json);
+    }
+
+    public PythonEtlService(String url, String chave, ObjectMapper json) {
         this.url = URI.create(url); this.chave = chave; this.json = json;
     }
 
@@ -30,13 +35,17 @@ public class PythonEtlService {
         var linhas = upload.linhas().stream().map(l -> {
             var c = l.cliente();
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("linha", l.numeroLinha()); m.put("codigoCliente", c.codigoCliente());
-            m.put("nomeCliente", c.nomeCliente()); m.put("consultor", c.consultor());
-            m.put("segmento", c.segmento()); m.put("nivelCliente", c.nivelCliente());
-            m.put("faturamentoAnual", c.faturamentoAnual());
-            m.put("servicosContratados", c.servicosContratados());
-            m.put("dataContratacao", c.dataContratacao().toString());
-            m.put("cidade", c.cidade()); m.put("uf", c.uf());
+            m.put("linha", l.numeroLinha());
+            m.put(Colunas.CODIGO, c.codigoCliente());
+            m.put(Colunas.NOME, c.nomeCliente());
+            m.put(Colunas.CONSULTOR, c.consultor());
+            m.put(Colunas.SEGMENTO, c.segmento());
+            m.put(Colunas.NIVEL, c.nivelCliente());
+            m.put(Colunas.FATURAMENTO, c.faturamentoAnual());
+            m.put(Colunas.SERVICOS, c.servicosContratados());
+            m.put(Colunas.DATA, c.dataContratacao().toString());
+            m.put(Colunas.CIDADE, c.cidade());
+            m.put(Colunas.UF, c.uf());
             return m;
         }).toList();
         try {

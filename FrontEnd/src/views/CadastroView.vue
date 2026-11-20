@@ -28,16 +28,6 @@
           <label for="cadastro-confirmacao" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">Confirme a senha</label>
           <input id="cadastro-confirmacao" v-model="confirmacao" required :type="mostrarSenha ? 'text' : 'password'" autocomplete="new-password" class="campo" />
         </div>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label for="cadastro-matricula" class="mb-1 block text-sm font-semibold">Matrícula (opcional)</label>
-            <input id="cadastro-matricula" v-model="matricula" maxlength="30" class="campo" />
-          </div>
-          <div>
-            <label for="cadastro-turma" class="mb-1 block text-sm font-semibold">Turma (opcional)</label>
-            <input id="cadastro-turma" v-model="turma" maxlength="60" class="campo" />
-          </div>
-        </div>
         <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
           <input v-model="mostrarSenha" type="checkbox" class="accent-brand" /> Mostrar senhas
         </label>
@@ -62,8 +52,6 @@ import api, { mensagemErro } from '../services/api.js'
 const nome = ref('')
 const email = ref('')
 const senha = ref('')
-const matricula = ref('')
-const turma = ref('')
 const confirmacao = ref('')
 const mostrarSenha = ref(false)
 const erro = ref('')
@@ -86,8 +74,7 @@ async function cadastrar() {
   carregando.value = true
   try {
     await api.post('/auth/register', {
-      nome: nome.value.trim(), email: email.value.trim(), senha: senha.value,
-      matricula: matricula.value.trim() || null, turma: turma.value.trim() || null
+      nome: nome.value.trim(), email: email.value.trim(), senha: senha.value
     })
     concluido.value = true
   } catch (e) { erro.value = mensagemErro(e) }

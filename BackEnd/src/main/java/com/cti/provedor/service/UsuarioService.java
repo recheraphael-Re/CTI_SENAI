@@ -6,6 +6,7 @@ import com.cti.provedor.config.ApiException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
+import java.util.Comparator;
 import java.util.List;
 @Service
 public class UsuarioService {
@@ -13,9 +14,9 @@ public class UsuarioService {
     public UsuarioService(UsuarioRepository repository) { this.repository = repository; }
     public List<UsuarioDto> listar(com.cti.provedor.model.StatusUsuario status) {
         return repository.findAll().stream().filter(u -> status == null || u.getStatus() == status)
-            .sorted(java.util.Comparator.comparing(Usuario::getCriadoEm,
-                java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
-                .thenComparing(Usuario::getId, java.util.Comparator.reverseOrder()))
+            .sorted(Comparator.comparing((Usuario u) -> u.getCriadoEm(),
+                Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(u -> u.getId(), Comparator.reverseOrder()))
             .map(UsuarioDto::de).toList();
     }
     public UsuarioDto atual(String email) {

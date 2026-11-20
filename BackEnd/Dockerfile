@@ -1,5 +1,5 @@
 # Etapa 1: compila o projeto com Maven e Java 21 (gera target/cti-provedor-api.jar)
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.10.0-eclipse-temurin-21-noble AS build
 WORKDIR /app
 COPY pom.xml .
 RUN mvn -q dependency:go-offline

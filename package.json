@@ -1,0 +1,7 @@
+{
+  "name": "cti-senai-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix FrontEnd run dev --"
+  }
+}

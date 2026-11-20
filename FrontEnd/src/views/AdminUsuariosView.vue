@@ -57,10 +57,9 @@ onMounted(carregar)
     <div v-else-if="usuarios.length" class="overflow-x-auto">
       <table class="w-full text-left text-sm">
         <caption class="sr-only">Usuários e ações de aprovação e bloqueio</caption>
-        <thead><tr><th scope="col" class="p-3">Nome</th><th scope="col" class="p-3">E-mail</th><th scope="col" class="p-3">Matrícula e turma</th><th scope="col" class="p-3">Perfil</th><th scope="col" class="p-3">Status</th><th scope="col" class="p-3">Ações</th></tr></thead>
+        <thead><tr><th scope="col" class="p-3">Nome</th><th scope="col" class="p-3">E-mail</th><th scope="col" class="p-3">Perfil</th><th scope="col" class="p-3">Status</th><th scope="col" class="p-3">Ações</th></tr></thead>
         <tbody><tr v-for="u in usuarios" :key="u.id" class="border-t border-slate-200 dark:border-slate-700">
           <td class="p-3">{{ u.nome }}</td><td class="p-3">{{ u.email }}</td>
-          <td class="p-3">{{ [u.matricula, u.turma].filter(Boolean).join(' · ') || '—' }}</td>
           <td class="p-3">
             <select v-model="perfis[u.id]" :aria-label="`Perfil de ${u.nome}`" :disabled="carregando || alterando !== null || u.id === auth.usuario?.id" class="rounded border border-slate-300 bg-white p-2 dark:border-slate-700 dark:bg-slate-800 disabled:opacity-50">
               <option value="USER">Usuário</option>

@@ -1,17 +1,23 @@
 package com.cti.provedor.controller;
-import com.cti.provedor.dto.*;
+
+import com.cti.provedor.dto.UsuarioDto;
+import com.cti.provedor.model.PerfilUsuario;
+import com.cti.provedor.model.StatusUsuario;
 import com.cti.provedor.service.UsuarioService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 @RestController
 @RequestMapping({"/admin/usuarios", "/api/admin/usuarios"})
 public class AdminUsuarioController {
+    public record AlterarStatusRequest(@NotNull StatusUsuario status, PerfilUsuario perfil) {}
+
     private final UsuarioService service;
     public AdminUsuarioController(UsuarioService service) { this.service = service; }
-    @GetMapping public List<UsuarioDto> listar(@RequestParam(required = false) com.cti.provedor.model.StatusUsuario status) { return service.listar(status); }
-    @PatchMapping("/{id}/status") public UsuarioDto alterar(@PathVariable Long id, @Valid @RequestBody StatusRequest dados, Principal principal) {
+    @GetMapping public List<UsuarioDto> listar(@RequestParam(required = false) StatusUsuario status) { return service.listar(status); }
+    @PatchMapping("/{id}/status") public UsuarioDto alterar(@PathVariable Long id, @Valid @RequestBody AlterarStatusRequest dados, Principal principal) {
         return service.alterar(id, dados.status(), dados.perfil(), principal.getName());
     }
 }

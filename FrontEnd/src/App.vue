@@ -1,9 +1,18 @@
 <script setup>
+import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
+import PanelLayout from './components/PanelLayout.vue'
+import { useAuthStore } from './stores/auth.js'
+
+const route = useRoute()
+const auth = useAuthStore()
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col">
+  <PanelLayout v-if="route.meta.requiresAuth && auth.logado">
+    <RouterView />
+  </PanelLayout>
+  <div v-else class="flex min-h-screen flex-col">
     <AppHeader />
     <main id="conteudo" class="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
       <RouterView />

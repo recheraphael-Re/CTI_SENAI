@@ -6,14 +6,17 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.net.URI;
 import java.net.http.*;
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.datasource.url=jdbc:h2:mem:auth;DB_CLOSE_DELAY=-1", "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.sql.init.mode=never", "spring.datasource.username=sa", "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=create-drop",
-    "app.jwt.secret-base64=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=", "ADMIN_EMAIL=", "ADMIN_PASSWORD="
+    "app.jwt.secret-base64=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=", "app.jwt.expiration-minutes=17",
+    "app.cors.allowed-origins=http://localhost:5173, http://localhost:4173", "ADMIN_EMAIL=", "ADMIN_PASSWORD="
 })
 class AuthIntegrationTest {
     @LocalServerPort int port;
@@ -28,7 +31,7 @@ class AuthIntegrationTest {
         builder.header("Content-Type", "application/json");
         return client.send(builder.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
     }
-    Usuario user(String email, PerfilUsuario perfil) {
+    @NonNull Usuario user(String email, PerfilUsuario perfil) {
         Usuario u = new Usuario(); u.setNome("Teste"); u.setEmail(email); u.setSenhaHash(encoder.encode("senha123"));
         u.setPerfil(perfil); u.setStatus(StatusUsuario.ATIVO); return repository.saveAndFlush(u);
     }
@@ -51,23 +54,20 @@ class AuthIntegrationTest {
         var campos = json.readTree(invalido.body()).get("campos");
         assertTrue(campos.has("nome")); assertTrue(campos.has("email")); assertTrue(campos.has("senha"));
     }
-    @Test void cadastroAcademicoEExpiracaoDoLogin() throws Exception {
+    @Test void cadastroEExpiracaoDoLogin() throws Exception {
         var resposta = request("POST", "/auth/register", """
-            {"nome":"Aluno","email":"aluno@example.com","senha":"senha123",
-             "matricula":" RA123 ","turma":" CTI01 "}
+            {"nome":"Clara","email":"clara@example.com","senha":"senha123"}
             """, null);
         assertEquals(201, resposta.statusCode());
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
         var cadastro = json.readTree(resposta.body());
         assertFalse(cadastro.get("criadoEm").isNull());
-        assertEquals("RA123", cadastro.get("matricula").asText());
-        assertEquals("CTI01", cadastro.get("turma").asText());
-        var aluno = repository.findByEmailIgnoreCase("aluno@example.com").orElseThrow();
-        aluno.setStatus(StatusUsuario.ATIVO); repository.saveAndFlush(aluno);
-        var login = request("POST", "/auth/login", "{\"email\":\"aluno@example.com\",\"senha\":\"senha123\"}", null);
+        var usuario = repository.findByEmailIgnoreCase("clara@example.com").orElseThrow();
+        usuario.setStatus(StatusUsuario.ATIVO); repository.saveAndFlush(usuario);
+        var login = request("POST", "/auth/login", "{\"email\":\"clara@example.com\",\"senha\":\"senha123\"}", null);
         assertEquals(200, login.statusCode());
         var dados = json.readTree(login.body());
-        assertEquals(jwt.getExpiraEmSegundos(), dados.get("expiraEmSegundos").asLong());
+        assertEquals(17 * 60L, dados.get("expiraEmSegundos").asLong());
     }
     @Test void cadastroLoginEAprovacao() throws Exception {
         String cadastro = "{\"nome\":\"Ana\",\"email\":\"Ana@example.com\",\"senha\":\"senha123\",\"perfil\":\"ADMIN\",\"status\":\"ATIVO\"}";
@@ -91,7 +91,7 @@ class AuthIntegrationTest {
         String tokenAdmin = jwt.gerar(admin);
         String rota = "/admin/usuarios/" + novo.getId() + "/status";
         assertEquals(200, request("PATCH", rota, "{\"status\":\"ATIVO\",\"perfil\":\"ADMIN\"}", tokenAdmin).statusCode());
-        novo = repository.findById(novo.getId()).orElseThrow();
+        novo = repository.findById(requireNonNull(novo.getId())).orElseThrow();
         assertEquals(PerfilUsuario.ADMIN, novo.getPerfil());
         assertEquals(StatusUsuario.ATIVO, novo.getStatus());
         String tokenNovo = jwt.gerar(novo);
@@ -141,9 +141,9 @@ class AuthIntegrationTest {
         Usuario admin = user("admin@example.com", PerfilUsuario.ADMIN); String token = jwt.gerar(admin);
         assertEquals(409, request("PATCH", "/admin/usuarios/"+admin.getId()+"/status", "{\"status\":\"BLOQUEADO\"}", token).statusCode());
         var preflight = HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/auth/login"))
-            .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", "POST")
+            .header("Origin", "http://localhost:4173").header("Access-Control-Request-Method", "POST")
             .header("Access-Control-Request-Headers", "content-type,authorization").method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
         var res = client.send(preflight, HttpResponse.BodyHandlers.ofString());
-        assertEquals(200, res.statusCode()); assertEquals("http://localhost:5173", res.headers().firstValue("Access-Control-Allow-Origin").orElseThrow());
+        assertEquals(200, res.statusCode()); assertEquals("http://localhost:4173", res.headers().firstValue("Access-Control-Allow-Origin").orElseThrow());
     }
 }

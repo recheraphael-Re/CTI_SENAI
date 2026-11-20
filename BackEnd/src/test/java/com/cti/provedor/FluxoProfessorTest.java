@@ -64,9 +64,9 @@ class FluxoProfessorTest {
             } finally { validator.close(); }
         } finally {
             var filhos = processo.descendants().toList();
-            filhos.forEach(ProcessHandle::destroy);
+            filhos.forEach(filho -> filho.destroy());
             processo.destroy(); if (!processo.waitFor(5, TimeUnit.SECONDS)) processo.destroyForcibly();
-            filhos.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+            filhos.stream().filter(filho -> filho.isAlive()).forEach(filho -> filho.destroyForcibly());
             try { if (!processo.isAlive()) Files.deleteIfExists(log); }
             catch (java.io.IOException ignored) { log.toFile().deleteOnExit(); }
         }

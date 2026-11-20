@@ -56,8 +56,7 @@ python -m venv .venv
 
 ```powershell
 # Terminal 3: Vue, porta 5173
-cd FrontEnd
-npm ci
+npm --prefix FrontEnd ci
 npm run dev
 ```
 

@@ -17,14 +17,16 @@ public class ErroHandler {
     public ResponseEntity<Map<String,Object>> campos(MethodArgumentNotValidException erro) {
         Map<String, String> campos = new java.util.LinkedHashMap<>();
         erro.getBindingResult().getFieldErrors().forEach(e -> campos.putIfAbsent(e.getField(), e.getDefaultMessage()));
-        var primeiro = campos.entrySet().stream().findFirst();
-        String mensagem = primeiro.map(Map.Entry::getValue).orElse("Confira os campos enviados.");
+        var primeiro = campos.entrySet().stream().findFirst().orElse(null);
+        String campo = primeiro == null ? "corpo" : primeiro.getKey();
+        String mensagem = primeiro == null || primeiro.getValue() == null
+            ? "Confira os campos enviados." : primeiro.getValue();
         return ResponseEntity.badRequest().body(Map.of("code", "VALIDACAO", "message", mensagem,
-            "erro", mensagem, "campo", primeiro.map(Map.Entry::getKey).orElse("corpo"), "campos", campos));
+            "erro", mensagem, "campo", campo, "campos", campos));
     }
     @ExceptionHandler(org.springframework.web.method.annotation.HandlerMethodValidationException.class)
     public ResponseEntity<Map<String,Object>> lote(org.springframework.web.method.annotation.HandlerMethodValidationException erro) {
-        for (var resultado : erro.getAllValidationResults()) {
+        for (var resultado : erro.getParameterValidationResults()) {
             if (resultado instanceof org.springframework.validation.Errors campos && campos.hasFieldErrors()) {
                 var campo = campos.getFieldErrors().get(0);
                 return dadosInvalidos(campo.getField(), campo.getDefaultMessage());
@@ -40,8 +42,9 @@ public class ErroHandler {
         return dadosInvalidos("clientes", erro.getMessage());
     }
     private ResponseEntity<Map<String,Object>> dadosInvalidos(String campo, String mensagem) {
-        return ResponseEntity.badRequest().body(Map.of("code", "VALIDACAO", "message", mensagem,
-            "mensagem", "Dados inválidos", "campo", campo, "erro", mensagem));
+        String descricao = mensagem == null ? "Confira os dados enviados." : mensagem;
+        return ResponseEntity.badRequest().body(Map.of("code", "VALIDACAO", "message", descricao,
+            "mensagem", "Dados inválidos", "campo", campo, "erro", descricao));
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String,Object>> validacao(Exception erro) {
@@ -65,7 +68,8 @@ public class ErroHandler {
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String,Object>> metodo(org.springframework.web.HttpRequestMethodNotSupportedException erro) {
         var headers = new HttpHeaders();
-        if (erro.getSupportedHttpMethods() != null) headers.setAllow(erro.getSupportedHttpMethods());
+        var metodos = erro.getSupportedHttpMethods();
+        if (metodos != null) headers.setAllow(metodos);
         return ResponseEntity.status(405).headers(headers).body(Map.of("code", "METODO_NAO_PERMITIDO", "message", "Metodo nao permitido."));
     }
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)

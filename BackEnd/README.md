@@ -1,6 +1,6 @@
 # BackEnd · CTI Insights
 
-API Spring Boot 3.5.6 com Java 21. Gerencia contas e permissões, revalida os registros do upload, encaminha os aprovados ao ETL e consulta as estatísticas gravadas.
+API Spring Boot 3.5.16 com Java 21. Gerencia contas e permissões, revalida os registros do upload, encaminha os aprovados ao ETL e consulta as estatísticas gravadas.
 
 ## Executar
 
@@ -22,6 +22,18 @@ mvn spring-boot:run
 ```
 
 Valide o status com `GET http://localhost:8080/api/health`. Veja as demais rotas no [contrato da API](../docs/CONTRATO.md).
+
+### Contas CTI pelo terminal
+
+Execute em `BackEnd/`. Os comandos usam a conexão configurada em `.env`, com o schema já criado. A senha é solicitada no terminal.
+
+```powershell
+mvn -DskipTests package
+java -jar target/cti-provedor-api.jar preparar-contas-cti
+java -jar target/cti-provedor-api.jar resetar-senha-admin-cti
+```
+
+`preparar-contas-cti` define a senha de `admin@cti.com` e `user@cti.com` e cria como ativas as contas que ainda não existem. Perfis e status de contas existentes são preservados. `resetar-senha-admin-cti` altera exclusivamente a senha de `admin@cti.com`, desde que a conta já exista com perfil `ADMIN`.
 
 ## Build
 

@@ -11,7 +11,7 @@ A planilha de 300 registros usa faturamento mensal e pode ser revisada no navega
 | Método e rota | Acesso e resultado |
 | --- | --- |
 | `GET /api/health` | Público. Confirma que a API responde |
-| `POST /api/auth/register` | Público. Recebe `nome`, `email`, `senha` e os campos opcionais `matricula` e `turma` |
+| `POST /api/auth/register` | Público. Recebe `nome`, `email` e `senha` |
 | `POST /api/auth/login` | Público. Recebe `email` e `senha`, retorna token e dados da conta ativa |
 | `GET /api/auth/me` | Autenticado. Retorna a conta da sessão |
 | `GET /api/admin/usuarios` | ADMIN. Lista contas com filtro opcional `status` |

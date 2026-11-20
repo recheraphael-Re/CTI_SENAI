@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS public.usuarios (
     perfil VARCHAR(20) NOT NULL CHECK (perfil IN ('USER', 'ADMIN')),
     status VARCHAR(20) NOT NULL CHECK (status IN ('PENDENTE', 'ATIVO', 'BLOQUEADO'))
 );
-ALTER TABLE public.usuarios ADD COLUMN IF NOT EXISTS matricula VARCHAR(30);
-ALTER TABLE public.usuarios ADD COLUMN IF NOT EXISTS turma VARCHAR(60);
 
 CREATE SCHEMA IF NOT EXISTS cti_analytics;
 -- ===== LOTES (cada envio de planilha é um lote; criado e gravado só pelo PYTHON) =====

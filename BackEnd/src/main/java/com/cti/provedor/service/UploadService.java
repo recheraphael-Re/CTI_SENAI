@@ -1,10 +1,11 @@
 package com.cti.provedor.service;
 import com.cti.provedor.dto.UploadDtos.*;
 import com.cti.provedor.config.ApiException;
+import com.cti.provedor.config.AppProperties;
 import jakarta.validation.Validator;
 import java.util.*;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 @Service
@@ -12,8 +13,12 @@ public class UploadService {
     private final ClienteValidacaoService service;
     private final Validator validator;
     private final int maxLinhas;
-    public UploadService(ClienteValidacaoService service, Validator validator,
-            @Value("${app.upload.max-linhas:5000}") int maxLinhas) {
+    @Autowired
+    public UploadService(ClienteValidacaoService service, Validator validator, AppProperties properties) {
+        this(service, validator, properties.upload().maxLinhas());
+    }
+
+    public UploadService(ClienteValidacaoService service, Validator validator, int maxLinhas) {
         if (maxLinhas < 1) throw new IllegalArgumentException("Limite de linhas deve ser positivo");
         this.service = service; this.validator = validator; this.maxLinhas = maxLinhas;
     }

@@ -1,0 +1,51 @@
+{
+  "properties": [
+    {
+      "name": "app.jwt.secret-base64",
+      "type": "java.lang.String",
+      "description": "Chave de assinatura JWT codificada em Base64."
+    },
+    {
+      "name": "app.jwt.expiration-minutes",
+      "type": "java.lang.Long",
+      "description": "Tempo de validade do token JWT em minutos.",
+      "defaultValue": 60
+    },
+    {
+      "name": "app.cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Origens CORS permitidas, separadas por vírgula.",
+      "defaultValue": ["http://localhost:5173"]
+    },
+    {
+      "name": "app.admin.nome",
+      "description": "Nome da primeira conta administradora.",
+      "defaultValue": "Administrador"
+    },
+    {
+      "name": "app.admin.email",
+      "description": "E-mail da primeira conta administradora."
+    },
+    {
+      "name": "app.admin.senha",
+      "description": "Senha da primeira conta administradora."
+    },
+    {
+      "name": "app.upload.max-linhas",
+      "type": "java.lang.Integer",
+      "description": "Máximo de registros que a API aceita por upload.",
+      "defaultValue": 5000
+    },
+    {
+      "name": "app.etl.url",
+      "type": "java.lang.String",
+      "description": "Endereço do endpoint de processamento do Python.",
+      "defaultValue": "http://127.0.0.1:8000/etl"
+    },
+    {
+      "name": "app.etl.key",
+      "type": "java.lang.String",
+      "description": "Chave de acesso que o Java envia ao serviço Python."
+    }
+  ]
+}

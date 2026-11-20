@@ -31,9 +31,9 @@ function sair() {
 </script>
 
 <template>
-  <header class="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 px-4 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="mr-auto py-4 text-xl font-bold text-brand dark:text-brand-light" @click="aberto = false">
+      <RouterLink to="/" class="mr-auto bg-linear-to-r from-brand to-brand-accent bg-clip-text py-4 text-xl font-bold text-transparent dark:from-brand-light dark:to-brand-accent-light" @click="aberto = false">
         CTI Insights
       </RouterLink>
       <ThemeToggle class="md:order-2" />

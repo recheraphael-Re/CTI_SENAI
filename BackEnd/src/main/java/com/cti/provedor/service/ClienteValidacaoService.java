@@ -14,10 +14,11 @@ public class ClienteValidacaoService {
             String codigo = cliente.codigoCliente().trim();
             if (!codigos.add(codigo.toUpperCase(Locale.ROOT))) throw new IllegalArgumentException("Código repetido na planilha: " + codigo);
             if (!Double.isFinite(cliente.faturamentoAnual())) throw new IllegalArgumentException("O faturamento deve ser um número finito.");
-            if (cliente.dataContratacao().getYear() < 1990 || cliente.dataContratacao().getYear() > 2100)
-                throw new IllegalArgumentException("A data deve estar entre 1990 e 2100.");
-            if (Arrays.stream(cliente.servicosContratados().split(";", -1)).anyMatch(s -> s.isBlank() || s.trim().length() > 120))
-                throw new IllegalArgumentException("Cada serviço deve ter entre 1 e 120 caracteres; separe-os com ponto e vírgula.");
+            Datas.conferirAnoContratacao(cliente.dataContratacao());
+            if (Arrays.stream(cliente.servicosContratados().split(";", -1))
+                    .anyMatch(s -> s.isBlank() || s.trim().length() > Colunas.MAX_NOME_SERVICO))
+                throw new IllegalArgumentException("Cada serviço deve ter entre 1 e " + Colunas.MAX_NOME_SERVICO
+                    + " caracteres; separe-os com ponto e vírgula.");
             if (Padronizacao.segmento(cliente.segmento()) == null)
                 throw new IllegalArgumentException("Segmento não reconhecido: " + cliente.segmento());
         }

@@ -1,6 +1,7 @@
 target/
 .env
 .idea/
-*.iml.env.*
+*.iml
+.env.*
 !.env.example
 .jwt-secret.local
