@@ -1,56 +1,30 @@
-import { criarProtecao } from './protecao.js'
-import { useAuthStore } from '../stores/auth.js'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
+import { criarProtecao } from './protecao.js'
 
-// Layouts
-import PublicLayout from '@/layouts/PublicLayout.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
-
-// View pública inicial (carregada junto, por ser a porta de entrada)
-import HomeView from '@/views/HomeView.vue'
-
-// Demais views carregadas sob demanda (lazy loading)
-const LoginView = () => import('@/views/LoginView.vue')
-const CadastroView = () => import('@/views/CadastroView.vue')
-const UploadView = () => import('@/views/UploadView.vue')
-const RelatoriosView = () => import('@/views/RelatoriosView.vue')
-const GraficosView = () => import('@/views/GraficosView.vue')
+const requiresAuth = { requiresAuth: true }
+const guestOnly = { guestOnly: true }
 
 const routes = [
-  // --- Rotas públicas (site institucional) ---
-  {
-    path: '/',
-    component: PublicLayout,
-    children: [
-      { path: '', name: 'home', component: HomeView },
-      { path: 'login', name: 'login', component: LoginView },
-      { path: 'cadastro', name: 'cadastro', component: CadastroView }
-    ]
-  },
-
-  // --- Rotas internas (painel, com Sidebar e Header) ---
-  {
-    path: '/app',
-    component: AppLayout,
-    meta: { requiresAuth: true },
-    redirect: '/app/upload', // Ao acessar /app, cai na tela principal interna
-    children: [
-      { path: 'usuarios', name: 'usuarios', component: () => import('@/views/UsuariosView.vue'), meta: { admin: true } },
-      { path: 'upload', name: 'upload', component: UploadView },
-      { path: 'relatorios', name: 'relatorios', component: RelatoriosView },
-      { path: 'graficos', name: 'graficos', component: GraficosView }
-    ]
-  },
-
-  // Redireciona qualquer rota inexistente para a home
-  { path: '/:pathMatch(.*)*', redirect: '/' }
+  { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
+  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: guestOnly },
+  { path: '/cadastro', name: 'cadastro', component: () => import('../views/CadastroView.vue'), meta: guestOnly },
+  { path: '/upload', name: 'upload', component: () => import('../views/UploadView.vue'), meta: requiresAuth },
+  { path: '/relatorio', name: 'relatorio', component: () => import('../views/RelatorioView.vue'), meta: requiresAuth },
+  { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: requiresAuth },
+  { path: '/admin/usuarios', name: 'admin', component: () => import('../views/AdminUsuariosView.vue'), meta: { ...requiresAuth, admin: true } },
+  { path: '/app', redirect: { name: 'upload' } },
+  { path: '/app/upload', redirect: { name: 'upload' } },
+  { path: '/app/relatorios', redirect: { name: 'relatorio' } },
+  { path: '/app/graficos', redirect: { name: 'dashboard' } },
+  { path: '/app/usuarios', redirect: { name: 'admin' } },
+  { path: '/:pathMatch(.*)*', name: 'nao-encontrada', component: () => import('../views/NotFoundView.vue') }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  // Rola até a âncora quando houver (#sobre, #contato); senão, volta ao topo
-  scrollBehavior: (to) => (to.hash ? { el: to.hash, behavior: 'smooth' } : { top: 0 })
+  scrollBehavior: () => ({ top: 0 })
 })
 
 router.beforeEach(to => criarProtecao(useAuthStore())(to))

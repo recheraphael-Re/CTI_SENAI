@@ -6,9 +6,9 @@ import com.cti.provedor.model.Usuario;
 
 // DTO de saída: nunca inclui senha nem hash.
 public record UsuarioDto(Long id, String nome, String email, PerfilUsuario perfil, StatusUsuario status,
-                         java.time.Instant criadoEm) {
+                         java.time.Instant criadoEm, String matricula, String turma) {
     public static UsuarioDto de(Usuario u) {
         return new UsuarioDto(u.getId(), u.getNome(), u.getEmail(), u.getPerfil(), u.getStatus(),
-            u.getCriadoEm());
+            u.getCriadoEm(), u.getMatricula(), u.getTurma());
     }
 }

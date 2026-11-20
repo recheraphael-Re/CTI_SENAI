@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createPinia, setActivePinia } from 'pinia'
-import { useUploadStore } from '../src/stores/uploadStore.js'
+import { useUploadStore } from '../src/stores/upload.js'
 import api from '../src/services/api.js'
 import * as XLSX from 'xlsx'
 

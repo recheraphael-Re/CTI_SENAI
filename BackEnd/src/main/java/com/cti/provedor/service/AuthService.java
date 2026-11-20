@@ -1,6 +1,9 @@
 package com.cti.provedor.service;
 
-import com.cti.provedor.dto.*;
+import com.cti.provedor.dto.AuthDtos.CadastroRequest;
+import com.cti.provedor.dto.AuthDtos.LoginRequest;
+import com.cti.provedor.dto.AuthDtos.LoginResponse;
+import com.cti.provedor.dto.UsuarioDto;
 import com.cti.provedor.model.PerfilUsuario;
 import com.cti.provedor.model.Usuario;
 import com.cti.provedor.repository.UsuarioRepository;
@@ -39,6 +42,8 @@ public class AuthService {
         Usuario usuario = new Usuario();
         usuario.setNome(dados.nome().trim());
         usuario.setEmail(email);
+        usuario.setMatricula(dados.matricula() == null ? null : dados.matricula().strip());
+        usuario.setTurma(dados.turma() == null ? null : dados.turma().strip());
         usuario.setSenhaHash(encoder.encode(dados.senha())); // Armazena apenas o hash.
         usuario.setPerfil(PerfilUsuario.USER); // Cadastro público nunca define ADMIN.
         return UsuarioDto.de(repository.saveAndFlush(usuario));

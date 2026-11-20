@@ -1,8 +1,0 @@
-﻿{
-  "name": "CTI Insights — Telas do sistema",
-  "id": "cti-insights-telas-local",
-  "api": "1.0.0",
-  "main": "code.js",
-  "editorType": ["figma"],
-  "networkAccess": { "allowedDomains": ["none"] }
-}

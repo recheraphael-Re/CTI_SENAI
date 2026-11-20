@@ -1,15 +1,15 @@
 package com.cti.provedor.controller;
 
-import com.cti.provedor.dto.*;
-import com.cti.provedor.model.Usuario;
-import com.cti.provedor.repository.UsuarioRepository;
+import com.cti.provedor.dto.AuthDtos.CadastroRequest;
+import com.cti.provedor.dto.AuthDtos.LoginRequest;
+import com.cti.provedor.dto.AuthDtos.LoginResponse;
+import com.cti.provedor.dto.UsuarioDto;
 import com.cti.provedor.service.AuthService;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping({"", "/api"})

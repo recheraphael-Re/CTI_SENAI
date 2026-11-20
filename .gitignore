@@ -1,15 +1,15 @@
-# A raiz so tem os atalhos de npm; as dependencias ficam em FrontEnd/
-node_modules/
-package-lock.json
-
-.npm-cache/
-**/.venv/
-**/__pycache__/
-analytics-python/.env
-.env.deploy
+# Configurações locais e arquivos gerados
 .env
-
-# Arquivos temporarios da geracao e revisao do guia
-/tmp/guia-apresentacao/
-.neon
-.env.local
+.env.*
+!.env.example
+.jwt-secret.local
+node_modules/
+dist/
+target/
+.venv/
+__pycache__/
+.pytest_cache/
+saida/
+output/
+.idea/
+*.iml

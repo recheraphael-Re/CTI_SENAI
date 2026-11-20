@@ -1,8 +1,10 @@
 <template>
   <button
+    type="button"
+    :aria-pressed="isDark"
     @click="toggleTheme"
     class="relative w-14 h-8 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-brand"
-    aria-label="Alternar tema"
+    aria-label="Tema escuro"
   >
     <!-- Bolinha que desliza -->
     <span

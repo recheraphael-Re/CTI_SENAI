@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { createPinia, setActivePinia } from 'pinia'
 import api, { mensagemErro } from '../src/services/api.js'
 import { useAuthStore } from '../src/stores/auth.js'
-import { useUploadStore } from '../src/stores/uploadStore.js'
+import { useUploadStore } from '../src/stores/upload.js'
 import { criarProtecao } from '../src/router/protecao.js'
 
 const usuario = { id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'ADMIN', status: 'ATIVO' }
@@ -60,7 +60,7 @@ test('rotas públicas, privadas, ADMIN e sessão inválida', async () => {
   assert.deepEqual(await proteger({ meta: { requiresAuth: true }, fullPath: '/app/upload' }), { name: 'login', query: { redirect: '/app/upload' } })
   responder({ token: 'valido', usuario: { ...usuario, perfil: 'USER' } })
   await auth.login('ana@example.com', 'teste')
-  assert.deepEqual(await proteger({ meta: { requiresAuth: true, admin: true } }), { name: 'graficos' })
+  assert.deepEqual(await proteger({ meta: { requiresAuth: true, admin: true } }), { name: 'dashboard' })
   assert.equal(await proteger({ meta: { requiresAuth: true } }), undefined)
   auth.usuario = null
   api.defaults.adapter = async () => { throw new Error('Sem conexão') }

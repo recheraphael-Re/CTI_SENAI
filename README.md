@@ -1,80 +1,68 @@
 # CTI Insights · CTI SENAI
 
-[![Diagrama interativo no GitDiagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/recheraphael-re/cti_senai?utm_source=readme&utm_medium=badge)
+Projeto integrador do SENAI para importar planilhas comerciais da Provedor CTI, revisar os registros e acompanhar indicadores da carteira por lote.
 
-Projeto integrador do SENAI para importar planilhas da carteira de clientes da Provedor CTI, validar dados e consultar indicadores por lote.
-
-## Arquitetura e fluxo de dados
-
-O diagrama descreve a implementação da branch `ajuste-fluxo-python-professora`, com base no [fluxo publicado pela professora](https://github.com/tatianaifsp/cti-projeto/blob/main/README.md#fluxo-de-dados).
+## Fluxo de dados
 
 ```mermaid
-flowchart TB
-    Usuario(("Usuário"))
-
-    subgraph Vue["Navegador · Vue 3 + Pinia"]
-        Sessao["Cadastro, login e administração de contas"]
-        Planilha["Upload · leitura e validação de XLSX, XLS ou CSV"]
-        Painel["Histórico, gráficos e relatórios"]
-    end
-
-    subgraph Java["API · Java + Spring Boot"]
-        Auth["Spring Security, JWT e gestão de contas"]
-        Validacao["UploadController · UploadService<br/>Revalidação e separação de linhas"]
-        ClienteETL["PythonEtlService<br/>Envia as linhas aprovadas"]
-        Dashboard["DashboardService · JdbcTemplate"]
-    end
-
-    subgraph Python["ETL · Python + FastAPI"]
-        Etl["api.py · main.py<br/>Recebe as linhas e coordena o lote"]
-        Analise["limpeza.py · analise.py · insights.py<br/>Padroniza dados e calcula indicadores"]
-        Gravacao["banco.py · SQLAlchemy<br/>Cria o lote e grava o resultado"]
-    end
-
-    subgraph Dados["Banco de dados"]
-        Banco[("PostgreSQL (Neon)<br/>public · cti_analytics")]
-    end
-
-    Usuario -->|"Acessa a conta"| Sessao
-    Usuario -->|"Seleciona a planilha"| Planilha
-    Usuario -->|"Consulta um lote"| Painel
-    Sessao <-->|"/auth e /api/admin/usuarios"| Auth
-    Planilha <-->|"POST /api/uploads/validadas · JWT"| Validacao
-    Painel <-->|"Consultas /api/dashboard · JWT"| Dashboard
-    Validacao --> ClienteETL
-    ClienteETL <-->|"POST /etl · X-ETL-Key"| Etl
-    Etl --> Analise --> Gravacao
-    Auth -->|"Lê e grava contas em public"| Banco
-    Gravacao -->|"Grava lotes e resultados em cti_analytics"| Banco
-    Dashboard -->|"Consulta lotes e resultados em cti_analytics"| Banco
-
-    classDef banco fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
-    class Banco banco
+flowchart LR
+    Planilha["Planilha XLSX, XLS ou CSV"] --> Vue["Vue · envio e revisão"]
+    Vue -->|"Linhas válidas"| Java["Spring Boot · revalidação"]
+    Java -->|"POST /etl"| Python["FastAPI · limpeza e estatística"]
+    Python -->|"Grava lotes e resultados"| Postgres[("PostgreSQL")]
+    Java -->|"Lê resultados e gerencia contas"| Postgres
+    Java -->|"Indicadores e contratos"| Dashboard["Vue · dashboard"]
 ```
 
-1. O Vue lê a planilha no navegador e mostra a prévia com as linhas válidas e os erros. Ao confirmar, envia ao Spring as linhas aprovadas e a contagem das descartadas.
-2. O Spring revalida os dados e envia somente as linhas aprovadas ao `POST /etl`. Com zero linhas válidas, o Spring devolve HTTP 400.
-3. O Python padroniza os dados, calcula estatísticas e insights e cria o lote como `PROCESSANDO`. Ao gravar os resultados em uma transação, marca o lote como `PROCESSADO`. Se a gravação falhar, desfaz as inserções da transação e tenta registrar `ERRO` no lote.
-4. Após a confirmação do Python, o Spring responde ao Vue com HTTP 201 e `loteId`. As telas de gráficos e relatórios usam `/api/dashboard`, `/api/dashboard/lotes` e `/api/dashboard/lotes/{id}/clientes` para consultar os dados salvos.
+1. Em **Enviar planilha**, o navegador lê o arquivo e abre a **Revisão** com os erros por linha.
+2. Ao confirmar o envio, o Spring revalida os registros e encaminha as linhas aprovadas ao Python.
+3. O Python padroniza os registros, calcula as estatísticas e salva o lote no PostgreSQL. O dashboard permite selecionar o lote e consultar os contratos.
 
-## Modelo de dados da importação
+O cadastro cria uma conta pendente. Um administrador libera o acesso na tela **Usuários**.
 
-O PostgreSQL no Neon reúne os dois esquemas. `cti_analytics` guarda os dados importados e suas estatísticas. `public` reúne as contas em `usuarios` e as tabelas acessadas pelos CRUDs Java.
+## Estrutura
 
-```mermaid
-erDiagram
-    upload_lote ||--o{ cliente : agrupa
-    upload_lote ||--o| estatistica_lote : gera
-    consultor ||--o{ cliente : atende
-    segmento ||--o{ cliente : classifica
-    cliente ||--o{ contrato : possui
-    servico ||--o{ contrato : "compõe"
+| Pasta | Conteúdo |
+| --- | --- |
+| [FrontEnd](FrontEnd/README.md) | Vue, Pinia, Vue Router, Tailwind e Chart.js |
+| [BackEnd](BackEnd/README.md) | API Spring Boot, JWT, validação e consulta de lotes |
+| [analytics-python](analytics-python/README.md) | ETL FastAPI, pandas, SciPy e SQLAlchemy |
+| [database](database/README.md) | Estrutura PostgreSQL e consultas |
+| [docs](docs/CONTRATO.md) | Contratos de integração e instruções de teste |
+| [Data](Data) e [sample-data](sample-data) | Bases e planilhas de teste do projeto |
+| [testes](docs/TESTES.md) | Verificação integrada dos serviços |
+
+## Executar localmente
+
+Use Java 21, Maven 3.9+, Node.js 20.19+ da série 20 ou Node.js 22.12+, e Python 3.10+.
+
+Crie um `.env` em cada serviço com base no respectivo `.env.example`. Configure Java e Python para o mesmo banco PostgreSQL e preencha `ETL_API_KEY` com o mesmo valor nos dois serviços. Veja os detalhes em [BackEnd](BackEnd/README.md) e [analytics-python](analytics-python/README.md).
+
+Em terminais separados, a partir da raiz:
+
+```powershell
+# Terminal 1: Java, porta 8080
+cd BackEnd
+mvn spring-boot:run
 ```
 
-Cada cliente importado pode gerar um contrato por serviço distinto. `estatistica_lote` armazena o resultado usado nos gráficos, incluindo indicadores e insights.
+```powershell
+# Terminal 2: Python, porta 8000
+cd analytics-python
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn api:app --port 8000
+```
 
-## Executar o projeto
+```powershell
+# Terminal 3: Vue, porta 5173
+cd FrontEnd
+npm ci
+npm run dev
+```
 
-- [Integração e execução local](INTEGRACAO_CTI.md)
-- [Implantação com Docker Compose](DEPLOY.md). O Nginx serve o Vue e encaminha `/api/` e `/auth/` ao Spring. A chamada do Spring ao Python passa pela rede interna dos containers.
-- [Código e instruções do frontend](FrontEnd/README.md), [backend](BackEnd/README.md) e [ETL Python](analytics-python/README.md)
+Abra http://localhost:5173. Use `sample-data/dados.xlsx` para testar o fluxo de ponta a ponta. A base de 300 registros em `Data/` serve para comparar a validação do navegador com o gabarito.
+
+Consulte os [testes e resultados esperados](docs/TESTES.md) e o [contrato entre os serviços](docs/CONTRATO.md).
+
+Estrutura baseada no [projeto de referência da professora](https://github.com/tatianaifsp/cti-projeto).

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api, { configurarAutenticacao } from '../services/api.js'
-import { useUploadStore } from './uploadStore.js'
+import { useUploadStore } from './upload.js'
 import { useDashboardStore } from './dashboard.js'
 
 const CHAVE = 'cti-auth-v1'

@@ -72,7 +72,9 @@ async function entrar() {
   try {
     await auth.login(email.value, senha.value)
     const destino = route.query.redirect
-    await router.replace(typeof destino === 'string' && destino.startsWith('/app/') ? destino : '/app/graficos')
+    const rotaProtegida = typeof destino === 'string' && destino.startsWith('/') &&
+      !destino.startsWith('//') && router.resolve(destino).meta.requiresAuth
+    await router.replace(rotaProtegida ? destino : { name: 'upload' })
   } catch (e) { erro.value = mensagemErro(e) }
   finally { carregando.value = false; senha.value = '' }
 }

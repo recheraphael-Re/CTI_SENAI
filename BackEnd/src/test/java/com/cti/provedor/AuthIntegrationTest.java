@@ -12,7 +12,7 @@ import java.net.http.*;
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "spring.datasource.url=jdbc:h2:mem:auth;DB_CLOSE_DELAY=-1", "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa", "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.sql.init.mode=never", "spring.datasource.username=sa", "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=create-drop",
     "app.jwt.secret-base64=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=", "ADMIN_EMAIL=", "ADMIN_PASSWORD="
 })
 class AuthIntegrationTest {
@@ -60,6 +60,8 @@ class AuthIntegrationTest {
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
         var cadastro = json.readTree(resposta.body());
         assertFalse(cadastro.get("criadoEm").isNull());
+        assertEquals("RA123", cadastro.get("matricula").asText());
+        assertEquals("CTI01", cadastro.get("turma").asText());
         var aluno = repository.findByEmailIgnoreCase("aluno@example.com").orElseThrow();
         aluno.setStatus(StatusUsuario.ATIVO); repository.saveAndFlush(aluno);
         var login = request("POST", "/auth/login", "{\"email\":\"aluno@example.com\",\"senha\":\"senha123\"}", null);

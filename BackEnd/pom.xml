@@ -18,8 +18,8 @@
 <name>cti-provedor-api</name>
 <description>API do CTI Provedor: login JWT, validação da planilha e envio ao Python</description>
 <properties>
-<java.version>25</java.version>
-<!--  usa o Java 25 LTS  -->
+<java.version>21</java.version>
+<!--  usa o Java 21 LTS  -->
 <jjwt.version>0.12.6</jjwt.version>
 <!--  versão da biblioteca de token JWT  -->
 </properties>

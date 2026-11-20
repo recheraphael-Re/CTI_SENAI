@@ -1,97 +1,39 @@
-# BackEnd CTI SENAI
+# BackEnd · CTI Insights
 
-API Spring Boot 3.5.6 / Java 25 LTS com PostgreSQL, Spring Security, BCrypt e JWT.
+API Spring Boot 3.5.6 com Java 21. Gerencia contas e permissões, revalida os registros do upload, encaminha os aprovados ao ETL e consulta as estatísticas gravadas.
 
-## Executar no PowerShell
+## Executar
 
-Para iniciar com uma chave JWT local persistente (ignorada pelo Git), execute `powershell -ExecutionPolicy Bypass -File .\BackEnd\iniciar.ps1` na raiz do repositorio. Se estiver dentro de BackEnd, use `powershell -ExecutionPolicy Bypass -File .\iniciar.ps1`. As configuracoes de banco existentes continuam sendo utilizadas. Uma nova chave invalida tokens anteriores; entre novamente no sistema.
+Copie `.env.example` para `.env` se ainda precisar configurá-lo. Preencha `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET_BASE64` e `ETL_API_KEY`. A chave do ETL deve coincidir com a do Python. `DB_URL` usa o formato JDBC, por exemplo `jdbc:postgresql://HOST:5432/BANCO?sslmode=require` para um banco com TLS.
 
-Na raiz do repositorio:
-
-```powershell
-cd BackEnd
-$env:DB_URL = "jdbc:postgresql://localhost:5432/cti_provedor"
-$env:DB_USERNAME = "postgres"
-$env:DB_PASSWORD = "<senha-do-seu-banco>"
-# Gere uma chave uma vez e guarde-a fora do Git. Trocar a chave invalida os tokens.
-$bytes = New-Object byte[] 32
-[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-$env:JWT_SECRET_BASE64 = [Convert]::ToBase64String($bytes)
-$env:CORS_ALLOWED_ORIGINS = "http://localhost:5173"
-mvn.cmd spring-boot:run
-```
-
-Em Windows PowerShell 5.1, use `([System.Security.Cryptography.RandomNumberGenerator]::Create()).GetBytes($bytes)` no lugar de `Fill`.
-As variaveis sao lidas do ambiente e de BackEnd/.env, carregado pelo Spring. O arquivo .env e local e ignorado pelo Git; use .env.example como referencia. DB_USER e DB_USERNAME sao aceitos para o usuario do banco.
-A senha de banco anteriormente no application.properties foi removida. Troque essa senha no provedor se ela foi compartilhada ou versionada.
-
-## Primeiro administrador
-
-Antes da primeira execucao, configure tambem `ADMIN_EMAIL` e `ADMIN_PASSWORD` no terminal. A senha deve ter pelo menos 8 caracteres e no maximo 72 bytes UTF-8. O provisionamento cria ADMIN/ATIVO e nao promove contas existentes. Depois de criar o administrador, pare a API e remova essas duas variaveis com `Remove-Item Env:ADMIN_EMAIL, Env:ADMIN_PASSWORD` antes de iniciar novamente. Nao grave essas credenciais no Git.
-
-## Rotas
-
-| Metodo | Rota | Acesso |
-|---|---|---|
-| POST | /auth/register | Publico: nome, email, senha; cria USER/PENDENTE |
-| POST | /auth/login | Publico: email, senha; retorna token, tipo Bearer e usuario |
-| GET | /auth/me | Token de usuario ativo |
-| GET | /admin/usuarios | ADMIN ativo |
-| PATCH | /admin/usuarios/{id}/status | ADMIN: status ATIVO ou BLOQUEADO; perfil opcional USER ou ADMIN |
-| GET | /api/health | Publico: retorna status ok |
-| GET | /api/publico | Publico |
-| GET | /api/privado | Token de usuario ativo |
-
-As rotas de autenticacao e administracao tambem aceitam prefixo /api e cadastro aceita /auth/cadastro como no material de referencia.
-O usuario retornado contem id, nome, email, perfil e status, sem senha/hash.
-Cadastro ignora perfil/status fornecidos pelo cliente. Erros de autenticacao usam JSON com code/message.
-Cada chamada protegida consulta o status atual no banco; bloquear uma conta impede reutilizar o token.
-Nao e permitido bloquear ou rebaixar o proprio administrador, nem remover o ultimo ADMIN ativo.
-CORS permite a origem configurada, Authorization e Content-Type, incluindo preflight.
-
-As rotas existentes de clientes, contratos, servicos, insights e telemetrias exigem autenticacao. Excluir cliente e escrever em consultores exige ADMIN. O login antigo `/consultores/login` foi removido; use `/auth/login`.
-O CRUD de consultores foi mantido por ter rotas e testes ativos. Os exemplos independentes de POO foram separados em `examples/java`, fora do codigo da API; veja `examples/PRATICA_Aula05.md`. Novas senhas de consultores sao armazenadas como BCrypt, mas o consultor nao autentica a API: a conta de acesso e Usuario.
-
-## Banco existente
-
-Os testes nao acessam o PostgreSQL remoto. Antes de usar um banco com usuarios existentes, execute conscientemente o script `src/main/resources/db/atualizar-usuarios.sql` nesse banco. Ele adiciona o status PENDENTE aos registros anteriores e amplia o email para 254 caracteres. Verifique emails duplicados sem diferenciar maiusculas antes de criar novas contas. Contas existentes precisam de aprovacao e senhas de Usuario devem estar em BCrypt.
-O Hibernate usa update por padrao para desenvolvimento. Em ambiente controlado, aplique o schema revisado e configure JPA_DDL_AUTO=validate.
-
-## FrontEnd
-
-O contrato de auth/admin existente em FrontEnd/src/services/CONTRATO_API.md foi implementado. Para usar a integracao, configure `VITE_API_URL=http://localhost:8080` em FrontEnd/.env.local e reinicie o Vite. O painel exige autenticacao; cadastro e login utilizam a API por padrao. Senhas acima de 72 bytes sao recusadas pelo servidor.
-
-## Testes
+Mantenha a chave JWT da instalação existente. Em uma instalação nova, gere uma com o PowerShell e guarde o valor em `BackEnd/.env`:
 
 ```powershell
-mvn.cmd test
+$bytesJwt = New-Object byte[] 32
+$geradorJwt = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try { $geradorJwt.GetBytes($bytesJwt) } finally { $geradorJwt.Dispose() }
+[Convert]::ToBase64String($bytesJwt)
 ```
 
-Os testes existentes de clientes/integrador continuam incluidos. AuthIntegrationTest inicia a API em porta aleatoria com H2 em memoria e verifica cadastro, hash, duplicidade, aprovacao, login, permissoes, bloqueio, validacao e CORS. Nao altera dados reais. H2 nao substitui uma verificacao posterior do schema PostgreSQL e da integracao visual com o Vue.
+Para criar a primeira conta administradora, defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` antes da primeira execução. O provisionamento cria uma conta `ADMIN` ativa quando o e-mail ainda está disponível. O Spring inicializa o schema na partida. Veja [database](../database/README.md) para aplicar o SQL separadamente.
 
-## Organizacao conforme o material da professora
+```powershell
+mvn spring-boot:run
+```
 
-O pacote principal e `src/main/java/com/cti/provedor`.
+Valide o status com `GET http://localhost:8080/api/health`. Veja as demais rotas no [contrato da API](../docs/CONTRATO.md).
 
-| Pasta | Responsabilidade |
-|---|---|
-| controller | Rotas HTTP; AuthController, AdminUsuarioController e ErroHandler |
-| service | Regras de negocio; AuthService e UsuarioService |
-| repository | Consultas ao PostgreSQL |
-| model | Entidades JPA e enums; Usuario, PerfilUsuario e StatusUsuario |
-| dto | Dados de entrada e resposta; UsuarioDto e DTOs de autenticacao |
-| config | SecurityConfig, JWT, UsuarioDetailsService, ApiException e AdminInicial |
+## Build
 
-A classe inicial e `CtiProvedorApplication`. Os testes acompanham o mesmo pacote em `src/test/java/com/cti/provedor`.
+```powershell
+mvn clean verify
+docker build -t cti-insights-api .
+```
 
-A reorganizacao nao renomeia tabelas nem altera registros do Azure. Mantivemos `usuarios` e `ATIVO`, utilizados pelo frontend e pelo banco existente. O PDF usa `usuario` e `APROVADO`; adotar esses nomes requer uma migracao separada.
+Os comandos partem de `BackEnd/`. O Maven gera `target/cti-provedor-api.jar`. Para iniciar o contêiner conectado a serviços já configurados, use:
 
-O fluxo de upload foi integrado: UploadController revalida os dados, PythonEtlService envia ao FastAPI, e o Python limpa, calcula e grava o lote no esquema `cti_analytics`. DashboardController consulta os lotes, clientes e estatisticas. Os CRUDs JPA existentes permanecem independentes. Configure a chave ETL e execute a migracao manual antes de importar. Instrucoes completas: [INTEGRACAO_CTI.md](../INTEGRACAO_CTI.md).
+```powershell
+docker run --rm --env-file .env -p 8080:8080 cti-insights-api
+```
 
-O upload separa linhas validas e rejeitadas. Numeros/datas invalidos sao erros da linha,
-sem interromper as demais. A resposta inclui linhasValidas, linhasInvalidas, totalLinhas
-e rejeitadas. Se todas forem invalidas, retorna 400 sem chamar o Python. O teste
-FluxoProfessorTest percorre o leitor Vue, o Java e a API Python com SQLite isolado;
-exige o ambiente virtual, node_modules e sample-data/dados.xlsx. Empacotamento: [DEPLOY.md](../DEPLOY.md).
-
-Detalhes da limpeza e dos arquivos preservados: [docs/ORGANIZACAO_PROJETO.md](docs/ORGANIZACAO_PROJETO.md).
+Configure `DB_URL` e `ETL_URL` com endereços acessíveis dentro do contêiner. No Docker Desktop, use `host.docker.internal` para um serviço iniciado no Windows.

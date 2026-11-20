@@ -1,118 +1,23 @@
-> **Acesso ao sistema:** cadastro e login utilizam o backend Spring Boot. O painel exige uma conta ativa e senha. Configure `VITE_API_URL=http://localhost:8080` em `FrontEnd/.env.local` se necessário e reinicie o Vite. Novas contas aguardam aprovação do administrador. Veja as instruções em [README do backend](../BackEnd/README.md).
+# FrontEnd · CTI Insights
 
-﻿# CTI Insights — Projeto Integrador II 2026/02
+Aplicação em Vue 3 com Pinia, Vue Router, Axios, Tailwind e Chart.js.
 
-Front-end acadêmico em Vue 3, Vite, Tailwind CSS, Pinia e Chart.js para importar e analisar a carteira de clientes da CTI.
-
-## Executar e verificar
-
-```bash
-npm install
+```powershell
+npm ci
 npm run dev
-npm test
-npm run build
-npm run preview
 ```
 
-No PowerShell com bloqueio de scripts, use `npm.cmd` no lugar de `npm`.
-Os scripts do Vite usam `--configLoader native` para carregar `vite.config.js`
-diretamente pelo Node, evitando a falha de empacotamento da configuração com
-a dependência nativa do Tailwind no Windows. A correção foi verificada com Node 24.14.0.
-Após alterar a configuração, reinicie o servidor de desenvolvimento.
-O teste de regressão utiliza `../Data/CTI_Insights_Base_Validacao_300_Registros.xlsx`.
-Se ela não existir no checkout, apenas esse teste é marcado como ignorado.
+Acesse http://localhost:5173. `VITE_API_URL` aponta para o endereço base da API, como `http://localhost:8080`, conforme `.env.example`.
 
-## Fluxo disponível
+| Rota | Tela |
+| --- | --- |
+| `/` | Início |
+| `/login`, `/cadastro` | Acesso e criação de conta |
+| `/upload` | Seleção e leitura da planilha |
+| `/relatorio` | Validação por linha e confirmação de envio |
+| `/dashboard` | Indicadores, histórico e contratos por lote |
+| `/admin/usuarios` | Aprovação de contas e perfis de acesso |
 
-O processamento integrado está descrito em [INTEGRACAO_CTI.md](../INTEGRACAO_CTI.md).
-Na tela de upload, **Ler e conferir planilha** cria uma prévia local; **Processar e salvar no banco**
-envia somente as linhas válidas ao Java e ao Python. Gráficos e relatórios abrem por padrão
-as importações persistidas no PostgreSQL, com seleção do lote. A prévia local e seus erros
-continuam disponíveis em uma aba separada.
+`npm run build` gera o site em `dist/`. A configuração em `vercel.json` permite acessar as rotas do Vue diretamente após publicar na Vercel.
 
-O arquivo é limitado a 5 MB. A planilha `../sample-data/dados.xlsx` tem teste de regressão
-para 32 clientes válidos e 6 linhas inválidas. O dashboard inclui a carteira por consultor,
-os cinco maiores clientes, data da análise e estados dos lotes. Veja também [DEPLOY.md](../DEPLOY.md).
-
-1. Em `/app/upload`, selecione ou arraste um XLSX, XLS ou CSV e processe.
-2. Confira quantidades de linhas válidas, linhas com erro e ocorrências.
-3. Em `/app/relatorios`, consulte as linhas, pesquise e filtre os erros.
-4. Em `/app/graficos`, veja faturamento, distribuição por segmento e nível, evolução por mês de início e frequência de serviços.
-
-### Aula 9 — Upload com Pinia
-
-`main.js` ativa o Pinia. `stores/uploadStore.js` guarda o arquivo selecionado,
-os dados originais (campos reconhecidos antes da padronização), os dados tratados,
-erros e estado de carregamento. A leitura e as regras de tratamento são delegadas
-a `utils/planilha.js`, preservando os testes existentes.
-
-`UploadView.vue` chama `selecionarArquivo()` e `processarPlanilha()` e exibe
-uma prévia das primeiras dez linhas, com consultor, segmento, nível e validação.
-Os getters `totalClientes` e `clientesNivelA` contam somente clientes válidos;
-`totalErros` conta ocorrências. Os campos internos `id`, `empresa` e `nivel`
-correspondem a código do cliente, nome do cliente e nível do exemplo da aula.
-
-O objeto File permanece em memória e deve ser selecionado novamente após F5;
-o resultado importado permanece na sessão. Teste a seleção e o arrastar e soltar,
-um arquivo inválido e o descarte da planilha.
-
-O backend Spring Boot já está implementado. Configure o PostgreSQL conforme o README do backend. A publicação no Azure fica para a próxima etapa. O planejamento está em
-`src/services/README_FUTURO_BACKEND.md`; a Aula 11 acrescenta o cliente Axios para autenticação.
-
-Os filtros de segmento e nível afetam os gráficos de contagem e a análise descritiva.
-Os indicadores gerais e o gráfico de faturamento mostram a base completa, conforme os rótulos.
-São calculados média, mediana e desvio padrão populacional para a seleção.
-Linhas inválidas não entram nos indicadores. Sem importação, o painel identifica a amostra como fictícia.
-
-## Contrato de importação
-
-Colunas obrigatórias: código do cliente, empresa/cliente, consultor, segmento, nível, faturamento e serviço.
-Os apelidos aceitos estão em `src/utils/planilha.js`.
-Colunas opcionais: valor do serviço, status e data de início.
-Colunas duplicadas para o mesmo campo são rejeitadas para evitar escolha silenciosa.
-
-A aba `dados_importacao` tem preferência. Sem ela, utiliza-se a primeira aba.
-As listas da aba `listas_referencia`, quando presentes, fornecem os domínios.
-O gabarito oficial é preservado: 300 linhas, 265 válidas, 35 com erro, 37 ocorrências.
-Além dessas regras, a importação acusa números inválidos e campos essenciais ausentes.
-
-O cabeçalho distingue faturamento anual, mensal ou período não informado.
-Não há conversão automática entre períodos. Faixas numéricas são representadas pelo ponto médio,
-uma estimativa, e não pelo faturamento exato. O faturamento das empresas clientes não representa
-receita da CTI. Valores monetários na interface são abreviados e arredondados.
-
-O gráfico temporal conta registros por mês de início, independentemente do status atual,
-e exclui registros sem data. Mostra somente meses observados; não prova evolução histórica
-completa nem previsão de contratações. A importação atual exige um código único por cliente
-em cada arquivo. No fluxo anual persistido, separe serviços por ponto e vírgula;
-o Python cria um contrato por serviço distinto e cliente no lote.
-
-## Persistência e demonstrações
-
-A prévia é processada no navegador. `sessionStorage` mantém a prévia ao atualizar a aba;
-as importações confirmadas pelo servidor ficam no PostgreSQL e podem ser consultadas por lote.
-Para salvar, use faturamento anual e data de contratação entre 1990 e 2100; não há conversão automática do mensal.
-A chave da sessão foi versionada para que dados importados sob regras antigas não escapem
-das novas validações: reimporte a planilha após esta atualização.
-
-Login e cadastro agora chamam a API; o painel exige conta ativa e a administração exige ADMIN. Sem backend, o login informa falha de conexão. Veja `src/services/CONTRATO_API.md` e `.env.example`.
-O formulário de contato não envia nem armazena mensagens e informa essa limitação.
-
-## Pendências do PI2
-
-- Aplicar `BackEnd/src/main/resources/db/analytics.sql` no PostgreSQL configurado e validar
-  o fluxo completo nesse ambiente. A migração não é executada automaticamente.
-- Gráficos adicionais de dispersão, histograma e boxplot, se exigidos pela rubrica da entrega.
-- Verificação visual em duas larguras de tela e evidências dos testes do fluxo completo.
-- Publicação e documentação da arquitetura, configuração e execução integrada.
-- Entrega E1: identificação, hipóteses testáveis, diagrama, protótipos, responsabilidades
-  e comprovante SAGA. Documentação de Automação Industrial e Relações Humanas.
-
-Utilizar a base fictícia para demonstrações e manter credenciais fora do repositório.
-
-## Aula 11 — autenticação e administração
-
-Contrato proposto, configuração e checklist: [CONTRATO_API.md](src/services/CONTRATO_API.md).
-As rotas `/app/*` exigem sessão e `/app/usuarios` exige ADMIN. Após login, o painel abre em `/app/graficos`. O backend em `BackEnd/` implementa autenticação e `/auth/me` para restaurar a sessão após F5. Não há contas de demonstração.
-
-O token permanece no sessionStorage da aba; logout remove a sessão e limpa a planilha importada. Senhas não são persistidas. O servidor deve aplicar autorização em todas as rotas protegidas.
+Veja [testes](../docs/TESTES.md) para validar as planilhas e o fluxo.

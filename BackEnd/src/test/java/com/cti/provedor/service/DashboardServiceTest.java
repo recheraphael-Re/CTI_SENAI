@@ -15,7 +15,7 @@ class DashboardServiceTest {
     @BeforeEach void preparar() {
         var ds = new JdbcDataSource();
         ds.setURL("jdbc:h2:mem:" + java.util.UUID.randomUUID() + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
-        new ResourceDatabasePopulator(new ClassPathResource("db/analytics.sql")).execute(ds);
+        new ResourceDatabasePopulator(new ClassPathResource("schema.sql")).execute(ds);
         jdbc = new JdbcTemplate(ds);
         service = new DashboardService(jdbc, new ObjectMapper());
     }

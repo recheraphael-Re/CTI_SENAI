@@ -1,4 +1,8 @@
-package com.cti.provedor.model;
+package com.cti.provedor.model;                          // pacote desta classe
+// ============================================================================
+//Os tipos de usuário.
+// USER (comum) ou ADMIN (administrador).
+// Usado por: Usuario.
+// ============================================================================
 
-// Enum restringe os valores possíveis do perfil.
-public enum PerfilUsuario { USER, ADMIN }
+public enum PerfilUsuario { USER, ADMIN }  // enum: USER (usuário comum) ou ADMIN (administrador)
