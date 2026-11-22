@@ -32,6 +32,8 @@ public class SecurityConfig {
                 .accessDeniedHandler((req,res,err) -> { res.setStatus(403); res.setContentType("application/json;charset=UTF-8"); res.getWriter().write("{\"code\":\"ACESSO_NEGADO\",\"message\":\"Acesso negado\"}"); }))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/cadastro", "/auth/login", "/api/auth/register", "/api/auth/cadastro", "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/auth/login-local").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login-local").permitAll()
                 .requestMatchers(HttpMethod.GET, "/publico", "/api/publico", "/health", "/api/health").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")

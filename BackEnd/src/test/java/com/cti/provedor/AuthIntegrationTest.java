@@ -117,6 +117,11 @@ class AuthIntegrationTest {
         u.setStatus(StatusUsuario.BLOQUEADO); repository.saveAndFlush(u);
         assertEquals(401, request("GET", "/auth/me", null, token).statusCode());
     }
+    @Test void loginSemSenhaNaoExisteNoPerfilPadrao() throws Exception {
+        user("admin@cti.com", PerfilUsuario.ADMIN);
+        assertEquals(404, request("GET", "/auth/login-local", null, null).statusCode());
+        assertEquals(404, request("POST", "/auth/login-local", null, null).statusCode());
+    }
     @Test void consultaAdministradorComPrefixoApiEContaRemovida() throws Exception {
         Usuario admin = user("admin@example.com", PerfilUsuario.ADMIN);
         String token = jwt.gerar(admin);

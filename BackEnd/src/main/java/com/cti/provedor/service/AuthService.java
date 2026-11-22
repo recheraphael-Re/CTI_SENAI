@@ -54,6 +54,17 @@ public class AuthService {
         if (dados.senha().getBytes(StandardCharsets.UTF_8).length > 72 || usuario == null || !encoder.matches(dados.senha(), usuario.getSenhaHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
         }
+        return iniciarSessao(usuario);
+    }
+
+    public LoginResponse entrarComoAdminLocal() {
+        var admin = repository.findByEmailIgnoreCase("admin@cti.com")
+            .filter(usuario -> usuario.getPerfil() == PerfilUsuario.ADMIN)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Conta administradora local indisponível."));
+        return iniciarSessao(admin);
+    }
+
+    private LoginResponse iniciarSessao(Usuario usuario) {
         if (usuario.getStatus() != StatusUsuario.ATIVO) {
             String code = usuario.getStatus() == StatusUsuario.PENDENTE ? "USUARIO_PENDENTE" : "USUARIO_BLOQUEADO";
             throw new ApiException(HttpStatus.FORBIDDEN, code, "Conta pendente de aprovacao ou bloqueada.");

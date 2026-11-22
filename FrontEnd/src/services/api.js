@@ -7,6 +7,7 @@ const api = axios.create({
 })
 
 // Configurado pelo store, evitando dependência circular com o roteador.
+const rotasPublicasDeAuth = ['/auth/login', '/auth/login-local', '/auth/register']
 let interceptores = []
 export function configurarAutenticacao(obterToken, sessaoInvalida) {
   if (interceptores.length) {
@@ -14,14 +15,14 @@ export function configurarAutenticacao(obterToken, sessaoInvalida) {
     api.interceptors.response.eject(interceptores[1])
   }
   const pedido = api.interceptors.request.use(config => {
-    if (!['/auth/login', '/auth/register'].includes(config.url)) {
+    if (!rotasPublicasDeAuth.includes(config.url)) {
       const token = obterToken()
       if (token) config.headers.Authorization = `Bearer ${token}`
     }
     return config
   })
   const resposta = api.interceptors.response.use(resposta => resposta, erro => {
-    if (erro.response?.status === 401 && !['/auth/login', '/auth/register'].includes(erro.config?.url)) sessaoInvalida()
+    if (erro.response?.status === 401 && !rotasPublicasDeAuth.includes(erro.config?.url)) sessaoInvalida()
     return Promise.reject(erro)
   })
   interceptores = [pedido, resposta]
