@@ -11,14 +11,7 @@
 
       <p v-if="route.query.motivo === 'sessao'" role="status" class="mb-4 text-sm text-slate-600 dark:text-slate-400">Sua sessão precisa ser validada. Entre novamente.</p>
       <p v-if="erro" role="alert" class="mb-4 text-sm text-red-600 dark:text-red-400">{{ erro }}</p>
-      <button
-        v-if="loginLocalDisponivel"
-        type="button" :disabled="carregando" @click="entrarLocal"
-        class="w-full bg-gradient-to-r from-brand to-brand-accent text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold"
-      >
-        {{ carregando ? 'Entrando...' : 'Entrar sem senha' }}
-      </button>
-      <form v-else class="flex flex-col gap-4" @submit.prevent="entrarComSenha">
+      <form class="flex flex-col gap-4" @submit.prevent="entrar">
         <div>
           <label for="email" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             E-mail corporativo
@@ -61,10 +54,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import api, { mensagemErro } from '../services/api.js'
+import { mensagemErro } from '../services/api.js'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -72,31 +65,12 @@ const email = ref('')
 const senha = ref('')
 const erro = ref('')
 const carregando = ref(false)
-const loginLocalDisponivel = ref(false)
-
-if (import.meta.env.DEV && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-  onMounted(async () => {
-    try {
-      const resposta = await api.get('/auth/login-local')
-      loginLocalDisponivel.value = resposta.status === 204
-    } catch { /* O formulário com senha continua disponível. */ }
-  })
-}
-
-function entrarComSenha() {
-  return entrar(() => auth.login(email.value, senha.value))
-}
-
-function entrarLocal() {
-  return entrar(() => auth.loginLocal())
-}
-
-async function entrar(autenticar) {
+async function entrar() {
   if (carregando.value) return
   carregando.value = true
   erro.value = ''
   try {
-    await autenticar()
+    await auth.login(email.value, senha.value)
     const destino = route.query.redirect
     const rotaProtegida = typeof destino === 'string' && destino.startsWith('/') &&
       !destino.startsWith('//') && router.resolve(destino).meta.requiresAuth

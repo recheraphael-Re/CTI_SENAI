@@ -2,12 +2,12 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env?.VITE_API_URL || 'http://localhost:8080',
-  timeout: 15000,
+  timeout: Number(import.meta.env?.VITE_API_TIMEOUT_MS) || 15000,
   headers: { 'Content-Type': 'application/json' }
 })
 
 // Configurado pelo store, evitando dependência circular com o roteador.
-const rotasPublicasDeAuth = ['/auth/login', '/auth/login-local', '/auth/register']
+const rotasPublicasDeAuth = ['/auth/login', '/auth/register']
 let interceptores = []
 export function configurarAutenticacao(obterToken, sessaoInvalida) {
   if (interceptores.length) {

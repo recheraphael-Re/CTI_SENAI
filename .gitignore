@@ -4,6 +4,7 @@
 !.env.example
 .jwt-secret.local
 node_modules/
+.vercel/
 dist/
 target/
 .venv/

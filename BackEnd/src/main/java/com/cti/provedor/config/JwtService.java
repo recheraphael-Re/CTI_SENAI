@@ -8,8 +8,6 @@ import io.jsonwebtoken.io.Decoders;
 import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Service;
 
 @Service // Responsável por assinar e validar JWTs.
@@ -17,12 +15,10 @@ public class JwtService {
     private final SecretKey chave;
     private final long expiracaoMinutos;
 
-    public JwtService(AppProperties properties, Environment ambiente) {
+    public JwtService(AppProperties properties) {
         var jwt = properties.jwt();
-        // Uma sessão sem senha só é válida nesta execução local.
-        this.chave = ambiente.acceptsProfiles(Profiles.of("login-local"))
-            ? Jwts.SIG.HS256.key().build()
-            : Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwt.secretBase64()));
+        // HS256 exige ao menos 256 bits (32 bytes) de chave aleatória.
+        this.chave = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwt.secretBase64()));
         if (jwt.expirationMinutes() <= 0) throw new IllegalArgumentException("Expiracao JWT deve ser positiva");
         this.expiracaoMinutos = jwt.expirationMinutes();
     }

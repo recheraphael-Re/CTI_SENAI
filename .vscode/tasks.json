@@ -4,8 +4,8 @@
     {
       "label": "CTI · Iniciar Spring Boot",
       "type": "shell",
-      "command": "mvn spring-boot:run",
-      "options": { "cwd": "${workspaceFolder}/BackEnd" },
+      "command": "npm run dev:api",
+      "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     },
     {
@@ -17,11 +17,9 @@
     },
     {
       "label": "CTI · Iniciar FastAPI",
-      "type": "process",
-      "command": "${workspaceFolder}/analytics-python/.venv/bin/python",
-      "windows": { "command": "${workspaceFolder}/analytics-python/.venv/Scripts/python.exe" },
-      "args": ["-m", "uvicorn", "api:app", "--port", "8000"],
-      "options": { "cwd": "${workspaceFolder}/analytics-python" },
+      "type": "shell",
+      "command": "npm run dev:etl",
+      "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     }
   ]
