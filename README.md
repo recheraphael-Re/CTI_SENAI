@@ -46,8 +46,7 @@ Em terminais separados, a partir da raiz:
 
 ```powershell
 # Terminal 1: Java, porta 8080
-cd BackEnd
-mvn spring-boot:run
+npm run dev:api
 ```
 
 ```powershell
@@ -55,7 +54,8 @@ mvn spring-boot:run
 cd analytics-python
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m uvicorn api:app --port 8000
+cd ..
+npm run dev:etl
 ```
 
 ```powershell
@@ -64,8 +64,18 @@ npm --prefix FrontEnd ci
 npm run dev
 ```
 
+As tarefas **CTI · Iniciar Spring Boot** e **CTI · Iniciar FastAPI** do VS Code usam os mesmos comandos. Na configuração local com Neon, eles conectam por WebSocket seguro na porta 443. Para usar a conexão PostgreSQL direta, defina `CTI_DB_TRANSPORT=direct` no `.env` do serviço. Execute `npm run check:etl` na raiz para verificar o banco do ETL.
+
 Abra http://localhost:5173. Use `sample-data/dados.xlsx` para testar o fluxo de ponta a ponta. A base de 300 registros em `Data/` serve para comparar a validação do navegador com o gabarito.
 
 Consulte os [testes e resultados esperados](docs/TESTES.md) e o [contrato entre os serviços](docs/CONTRATO.md).
+
+## Publicar na Vercel e no Render
+
+1. Escolha o banco do Neon para a publicação. Se precisar preservar contas e importações existentes, copie os dados para o destino e confira as contagens antes de trocar as conexões.
+2. Importe o repositório na Vercel e escolha `FrontEnd` como **Root Directory**. Anote o domínio de produção atribuído ao projeto.
+3. No Render, use o Blueprint [render.yaml](render.yaml). Aponte ambos os serviços para o mesmo banco e branch do Neon. No Spring, informe `DB_URL` no formato `jdbc:postgresql://HOST:5432/BANCO?sslmode=require&channelBinding=require`, `DB_USER` e `DB_PASSWORD`. No FastAPI, informe `DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PASSWORD`. Configure `CORS_ALLOWED_ORIGINS` com a origem HTTPS da Vercel, sem barra final.
+4. Na Vercel, defina `VITE_API_URL` com a URL HTTPS do Spring e `VITE_API_TIMEOUT_MS=150000` para acomodar a inicialização dos serviços gratuitos. Publique o frontend após salvar as variáveis de produção.
+5. Confira `/api/health` no Spring, `/saude` no FastAPI e `/login` na Vercel. Entre com uma conta existente e confira o histórico de lotes do dashboard.
 
 Estrutura baseada no [projeto de referência da professora](https://github.com/tatianaifsp/cti-projeto).

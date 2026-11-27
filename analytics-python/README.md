@@ -9,8 +9,9 @@ Preencha as variáveis de `.env.example` em `.env`. Use o mesmo banco e a mesma 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe testar_conexao.py
-.\.venv\Scripts\python.exe -m uvicorn api:app --port 8000
+cd ..
+npm run check:etl
+npm run dev:etl
 ```
 
 - `GET /saude` verifica se o serviço responde.

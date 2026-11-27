@@ -28,15 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
     usuario.value = { id: dado.id, nome: dado.nome, email: dado.email, perfil: dado.perfil, status: dado.status,
       criadoEm: dado.criadoEm ?? null }
   }
-  function login(email, senha) {
-    return autenticar('/auth/login', { email: email.trim(), senha })
-  }
-  function loginLocal() {
-    return autenticar('/auth/login-local')
-  }
-  async function autenticar(rota, credenciais) {
+  async function login(email, senha) {
     logout()
-    const { data } = await api.post(rota, credenciais)
+    const { data } = await api.post('/auth/login', { email: email.trim(), senha })
     try {
       if (typeof data.token !== 'string' || !data.token.trim()) throw new Error('A API não retornou um token válido.')
       aceitarUsuario(data.usuario)
@@ -57,5 +51,5 @@ export const useAuthStore = defineStore('auth', () => {
     return verificacao
   }
   configurarAutenticacao(() => token.value, logout)
-  return { token, usuario, logado, isAdmin, login, loginLocal, logout, restaurar }
+  return { token, usuario, logado, isAdmin, login, logout, restaurar }
 })

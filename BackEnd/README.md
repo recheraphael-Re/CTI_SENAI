@@ -17,9 +17,7 @@ try { $geradorJwt.GetBytes($bytesJwt) } finally { $geradorJwt.Dispose() }
 
 Para criar a primeira conta administradora, defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` antes da primeira execução. O provisionamento cria uma conta `ADMIN` ativa quando o e-mail ainda está disponível. O Spring inicializa o schema na partida. Veja [database](../database/README.md) para aplicar o SQL separadamente.
 
-```powershell
-mvn spring-boot:run
-```
+Na raiz do projeto, execute `npm run dev:api` ou use a tarefa **CTI · Iniciar Spring Boot** do VS Code. Para iniciar diretamente da pasta `BackEnd` em uma rede que alcança a porta PostgreSQL do banco, execute `mvn spring-boot:run`.
 
 Valide o status com `GET http://localhost:8080/api/health`. Veja as demais rotas no [contrato da API](../docs/CONTRATO.md).
 

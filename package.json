@@ -2,6 +2,9 @@
   "name": "cti-senai-workspace",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix FrontEnd run dev --"
+    "dev": "npm --prefix FrontEnd run dev --",
+    "dev:api": "node --experimental-websocket scripts/iniciar-servico-local.cjs api",
+    "dev:etl": "node --experimental-websocket scripts/iniciar-servico-local.cjs etl",
+    "check:etl": "node --experimental-websocket scripts/iniciar-servico-local.cjs verificar-etl"
   }
 }
